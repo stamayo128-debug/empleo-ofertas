@@ -72,3 +72,5 @@ La base ya existe; esta app no crea ni modifica el esquema. Usa las tablas `ofer
 Todas empiezan con `requireSession()` y validan la entrada con zod `strictObject` (rechazan campos extra): `actualizarOferta`, `recuperarDescarte`, `marcarEnviadas`, `deshacerEnvios`, `descartarOfertas`, `deshacerDescartes`, `marcarVerificada`, `fusionarOfertas`, `guardarCriterios` y `archivarNota`. Todas devuelven `{ ok, error }`; los campos nuevos de la 0007 no se editan con `actualizarOferta`, van por RPC.
 
 El Excel (`/api/export`) añade al final de la hoja Ofertas las columnas "Otras fuentes", "Por verificar", "Motivo descarte (tú)" y "CV adaptado (Drive)".
+
+<!-- Despliegue automático desde GitHub a Vercel activado. -->
