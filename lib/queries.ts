@@ -213,6 +213,11 @@ export async function listarEjecuciones(lim: number): Promise<{ filas: Ejecucion
   return { filas, total: res.count ?? filas.length };
 }
 
+export async function obtenerEjecucion(id: number): Promise<Ejecucion | null> {
+  const res = await db().from('ejecuciones').select('*').eq('id', id).maybeSingle();
+  return ok<Ejecucion | null>(res as never);
+}
+
 export async function busquedasDe(ids: number[]): Promise<Busqueda[]> {
   if (!ids.length) return [];
   return fetchAll<Busqueda>('busquedas', '*', 'id', (q) => q.in('ejecucion_id', ids));
