@@ -15,7 +15,8 @@
   --accent-soft: #EBF6FD;
   --on-accent: #FFFFFF;
   /* Acciones y estados */
-  --save: #E5484D;
+  --save: #D1343A;
+  --on-save: #FFFFFF;
   --azul: #2B5DAA;
   --ambar: #9A5B00;
   --verde: #1F7F54;
@@ -43,6 +44,7 @@
     --accent-soft: #12324A;
     --on-accent: #0A1620;
     --save: #FF6B70;
+    --on-save: #2A0A0B;
     --azul: #8CB4F0;
     --ambar: #E0A84A;
     --verde: #4CC38A;
@@ -67,6 +69,7 @@
   --color-accent-soft: var(--accent-soft);
   --color-on-accent: var(--on-accent);
   --color-save: var(--save);
+  --color-on-save: var(--on-save);
   --color-azul: var(--azul);
   --color-ambar: var(--ambar);
   --color-verde: var(--verde);
@@ -93,7 +96,7 @@ body { background: transparent; color: var(--text); font-family: var(--font-inte
   .icon-btn { @apply grid size-11 shrink-0 place-items-center rounded-full bg-surface text-fg shadow-btn; }
   .input { @apply min-h-11 w-full rounded-full border border-border bg-surface px-4 text-[15px] text-fg; }
   textarea.input, select.input { @apply rounded-tile; }
-  .chip { @apply inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full bg-surface-2 px-4 text-sm font-medium text-fg; }
+  .chip { @apply inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full bg-surface px-4 text-sm font-medium text-fg shadow-[0_1px_2px_rgb(0_0_0/0.06)]; }
   .chip-on { @apply bg-accent text-on-accent; }
   .seg { @apply flex rounded-full bg-surface-2 p-1; }
   .label { @apply mb-1 block text-sm font-medium text-muted; }
@@ -101,7 +104,7 @@ body { background: transparent; color: var(--text); font-family: var(--font-inte
   .meta { @apply text-sm text-muted; }
   .num { font-variant-numeric: tabular-nums; }
   /* Cristal esmerilado para barras fijas. */
-  .glass { background: color-mix(in srgb, var(--surface) 82%, transparent); backdrop-filter: blur(16px) saturate(1.4); -webkit-backdrop-filter: blur(16px) saturate(1.4); }
+  .glass { background: var(--surface); background: color-mix(in srgb, var(--surface) 82%, transparent); backdrop-filter: blur(16px) saturate(1.4); -webkit-backdrop-filter: blur(16px) saturate(1.4); }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { Archive, Briefcase, History, Send, Settings } from 'lucide-react';
 
 const ESCRITORIO = [
@@ -13,6 +13,7 @@ const ESCRITORIO = [
 ];
 
 function activo(path: string, href: string) {
+  if (href === '/ajustes') return path.startsWith('/ajustes') || path.startsWith('/criterios'); // Criterios cuelga de Ajustes
   return href === '/' ? path === '/' : path.startsWith(href);
 }
 
@@ -48,22 +49,25 @@ function Item({ href, etiqueta, Icono, path }: { href: string; etiqueta: string;
 /** Barra inferior flotante: Ofertas · Descartes · [Por enviar] · Búsquedas · Ajustes. */
 export function NavMovil({ porEnviar }: { porEnviar: number }) {
   const path = usePathname();
+  const tab = useSearchParams().get('tab');
+  const enPorEnviar = path === '/' && tab === 'porenviar';
   return (
     <nav
       aria-label="Principal"
       className="glass fixed inset-x-4 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 grid grid-cols-5 items-center rounded-full border border-border/60 px-2 shadow-card md:hidden"
     >
-      <Item href="/" etiqueta="Ofertas" Icono={Briefcase} path={path} />
+      <Item href="/" etiqueta="Ofertas" Icono={Briefcase} path={enPorEnviar ? '/otra' : path} />
       <Item href="/descartes" etiqueta="Descartes" Icono={Archive} path={path} />
       <Link
         href="/?tab=porenviar"
         aria-label={`Por enviar, ${porEnviar} pendientes`}
-        className="relative -mt-7 grid size-14 place-items-center justify-self-center rounded-full text-on-accent shadow-btn"
+        aria-current={enPorEnviar ? 'page' : undefined}
+        className={`relative -mt-7 grid size-14 place-items-center justify-self-center rounded-full text-on-accent shadow-btn ${enPorEnviar ? 'ring-4 ring-accent-soft' : ''}`}
         style={{ backgroundImage: 'var(--grad-cta)' }}
       >
         <Send size={22} aria-hidden />
         {porEnviar > 0 && (
-          <span className="num absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-save px-1 text-[11px] font-semibold leading-5 text-white">
+          <span className="num absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-save px-1 text-[11px] font-bold leading-5 text-on-save">
             {porEnviar > 99 ? '99+' : porEnviar}
           </span>
         )}

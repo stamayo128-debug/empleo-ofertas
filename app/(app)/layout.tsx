@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { Briefcase } from 'lucide-react';
 import { RecordatorioEnvio } from '@/components/AbrirOfertaLink';
 import EstadoPill from '@/components/EstadoPill';
@@ -24,8 +25,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <NavEscritorio />
         </div>
       </header>
-      <main className="mx-auto max-w-[1240px] px-5 pb-32 pt-6 md:pb-10">{children}</main>
-      <NavMovil porEnviar={porEnviar} />
+      <main className="mx-auto max-w-[1240px] px-5 pb-[calc(7.5rem+env(safe-area-inset-bottom))] pt-6 md:pb-10">{children}</main>
+      <Suspense fallback={null}>
+        <NavMovil porEnviar={porEnviar} />
+      </Suspense>
       <RecordatorioEnvio />
     </ToastProvider>
   );
