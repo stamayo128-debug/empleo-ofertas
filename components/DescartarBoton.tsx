@@ -71,7 +71,7 @@ export default function DescartarBoton({
       <dialog
         ref={ref}
         aria-labelledby={`${uid}-t`}
-        className="m-auto w-[min(30rem,calc(100vw-2rem))] rounded-[10px] border border-border bg-surface p-4 text-fg backdrop:bg-black/50"
+        className="m-auto w-[min(30rem,calc(100vw-2rem))] rounded-tile border border-border bg-surface p-4 text-fg backdrop:bg-black/50"
         onClick={(e) => { if (e.target === ref.current) cerrar(); }}
       >
         <form onSubmit={confirmar} className="space-y-4">

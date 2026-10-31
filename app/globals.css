@@ -1,34 +1,56 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #F7F7F5;
+  /* Superficies y texto */
+  --bg: #EEF2F5;
+  --bg-2: #F7F9FB;
   --surface: #FFFFFF;
-  --border: #E5E4E0;
-  --text: #1C1B19;
-  --muted: #6B6A65;
-  --accent: #0F6E6A;
-  --accent-soft: #E3F1EF;
+  --surface-2: #F3F5F7;
+  --border: #E8ECF0;
+  --text: #16191D;
+  --muted: #5F6772;
+  /* Celeste de la marca */
+  --accent: #17709F;
+  --accent-strong: #115A85;
+  --accent-soft: #EBF6FD;
   --on-accent: #FFFFFF;
+  /* Acciones y estados */
+  --save: #E5484D;
   --azul: #2B5DAA;
   --ambar: #9A5B00;
-  --verde: #2F7D32;
+  --verde: #1F7F54;
   --rojo: #A8322B;
+  /* Forma y elevación */
+  --radius-card: 24px;
+  --radius-tile: 16px;
+  --shadow-card: 0 8px 24px rgb(30 80 120 / 0.08);
+  --shadow-btn: 0 4px 12px rgb(0 0 0 / 0.10);
+  --grad-cta: linear-gradient(90deg, #17709F, #115A85);
+  --grad-soft: linear-gradient(90deg, transparent, #EBF6FD);
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #141413;
-    --surface: #1E1E1C;
-    --border: #33322F;
-    --text: #EDECE8;
-    --muted: #A3A29C;
-    --accent: #4FB3AC;
-    --accent-soft: #17302E;
-    --on-accent: #0B1A19;
+    --bg: #0E1419;
+    --bg-2: #121A21;
+    --surface: #161E25;
+    --surface-2: #1C262F;
+    --border: #24303A;
+    --text: #E8EEF3;
+    --muted: #93A1AD;
+    --accent: #5BB4E8;
+    --accent-strong: #2F8FCB;
+    --accent-soft: #12324A;
+    --on-accent: #0A1620;
+    --save: #FF6B70;
     --azul: #8CB4F0;
     --ambar: #E0A84A;
-    --verde: #7CCB80;
+    --verde: #4CC38A;
     --rojo: #F0948E;
+    --shadow-card: 0 8px 24px rgb(0 0 0 / 0.35);
+    --shadow-btn: 0 4px 12px rgb(0 0 0 / 0.40);
+    --grad-cta: linear-gradient(90deg, #3A9BD5, #2F8FCB);
+    --grad-soft: linear-gradient(90deg, transparent, #12324A);
     color-scheme: dark;
   }
 }
@@ -36,33 +58,50 @@
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
   --color-border: var(--border);
   --color-fg: var(--text);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
   --color-accent-soft: var(--accent-soft);
   --color-on-accent: var(--on-accent);
+  --color-save: var(--save);
   --color-azul: var(--azul);
   --color-ambar: var(--ambar);
   --color-verde: var(--verde);
   --color-rojo: var(--rojo);
+  --radius-card: var(--radius-card);
+  --radius-tile: var(--radius-tile);
+  --shadow-card: var(--shadow-card);
+  --shadow-btn: var(--shadow-btn);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
-html { background: var(--bg); }
-body { background: var(--bg); color: var(--text); font-family: var(--font-inter), system-ui, sans-serif; font-size: 16px; line-height: 1.5; }
+html { background: radial-gradient(120% 80% at 0% 0%, var(--bg-2), var(--bg)) fixed; background-color: var(--bg); }
+body { background: transparent; color: var(--text); font-family: var(--font-inter), system-ui, sans-serif; font-size: 16px; line-height: 1.5; }
 
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 @layer components {
-  .card { @apply rounded-[10px] border border-border bg-surface; }
-  .btn { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px] border border-border bg-surface px-4 text-[15px] font-medium text-fg transition-colors duration-150 hover:bg-accent-soft disabled:opacity-60; }
-  .btn-primary { @apply border-accent bg-accent text-on-accent hover:bg-accent hover:opacity-90; }
-  .input { @apply min-h-11 w-full rounded-[10px] border border-border bg-surface px-3 text-[15px] text-fg; }
+  /* Tarjetas: sin borde, la jerarquía la marca la sombra suave. */
+  .card { @apply rounded-card bg-surface shadow-card; }
+  .tile { @apply rounded-tile bg-surface-2 p-4; }
+  /* Botones y campos en píldora. */
+  .btn { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-border bg-surface px-5 text-[15px] font-medium text-fg transition-colors duration-150 hover:bg-accent-soft disabled:opacity-60; }
+  .btn-primary { @apply border-transparent text-on-accent hover:opacity-90; background-image: var(--grad-cta); }
+  .icon-btn { @apply grid size-11 shrink-0 place-items-center rounded-full bg-surface text-fg shadow-btn; }
+  .input { @apply min-h-11 w-full rounded-full border border-border bg-surface px-4 text-[15px] text-fg; }
+  textarea.input, select.input { @apply rounded-tile; }
+  .chip { @apply inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full bg-surface-2 px-4 text-sm font-medium text-fg; }
+  .chip-on { @apply bg-accent text-on-accent; }
+  .seg { @apply flex rounded-full bg-surface-2 p-1; }
   .label { @apply mb-1 block text-sm font-medium text-muted; }
   .badge { @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-[13px] font-medium leading-5; }
   .meta { @apply text-sm text-muted; }
   .num { font-variant-numeric: tabular-nums; }
+  /* Cristal esmerilado para barras fijas. */
+  .glass { background: color-mix(in srgb, var(--surface) 82%, transparent); backdrop-filter: blur(16px) saturate(1.4); -webkit-backdrop-filter: blur(16px) saturate(1.4); }
 }
 
 @media (prefers-reduced-motion: reduce) {

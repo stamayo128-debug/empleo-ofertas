@@ -107,7 +107,7 @@ export default function DetallePanel({ o, eventos, cerrarHref }: { o: Oferta; ev
       </header>
 
       {o.por_verificar && (
-        <div role="note" className="space-y-3 rounded-[10px] border border-ambar px-3 py-3">
+        <div role="note" className="space-y-3 rounded-tile border border-ambar px-3 py-3">
           <p className="text-[15px]"><span className="font-semibold text-ambar">Por verificar:</span> {o.verificar_motivo ?? 'necesita una comprobación'}</p>
           <VerificarAcciones
             key={`v-${o.id}`} id={o.id} codigo={o.codigo}
@@ -117,7 +117,7 @@ export default function DetallePanel({ o, eventos, cerrarHref }: { o: Oferta; ev
       )}
 
       {o.estado === 'Descartada' && (
-        <p role="note" className="rounded-[10px] border border-border px-3 py-2 text-[15px]">
+        <p role="note" className="rounded-tile border border-border px-3 py-2 text-[15px]">
           <span className="font-semibold">Descartada</span>
           {o.descarte_usuario_motivo
             ? <> por ti{o.descartada_en ? ` el ${fmtCorta(o.descartada_en)}` : ''}: {motivoUsuario}.</>
@@ -128,11 +128,11 @@ export default function DetallePanel({ o, eventos, cerrarHref }: { o: Oferta; ev
       )}
 
       {calidad === 'solo_basicos' ? (
-        <p role="note" className="rounded-[10px] border border-border bg-accent-soft px-3 py-2 text-sm text-muted">
+        <p role="note" className="rounded-tile border border-border bg-accent-soft px-3 py-2 text-sm text-muted">
           Aún no hemos leído el anuncio: solo tenemos título, empresa y lugar del listado. Ábrelo para ver los detalles.
         </p>
       ) : calidad === 'parcial' ? (
-        <p role="note" className="rounded-[10px] border border-border bg-accent-soft px-3 py-2 text-sm text-muted">
+        <p role="note" className="rounded-tile border border-border bg-accent-soft px-3 py-2 text-sm text-muted">
           Ficha parcial: el anuncio no daba todos los datos.
         </p>
       ) : null}
@@ -158,7 +158,7 @@ export default function DetallePanel({ o, eventos, cerrarHref }: { o: Oferta; ev
         {vistazo.length > 0 && (
           <dl className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
             {vistazo.map(([k, v]) => (
-              <div key={k} className="min-w-0 rounded-[10px] border border-border p-3">
+              <div key={k} className="min-w-0 rounded-tile border border-border p-3">
                 <dt className="text-xs font-medium uppercase tracking-wide text-muted">{k}</dt>
                 <dd className="mt-0.5 break-words text-[15px]">{v}</dd>
               </div>
@@ -228,7 +228,7 @@ export default function DetallePanel({ o, eventos, cerrarHref }: { o: Oferta; ev
           cvDocUrl={cvUrl} cvVersion={o.cv_doc_version}
         />
         {mensaje && (
-          <div className="rounded-[10px] border border-border p-3">
+          <div className="rounded-tile border border-border p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h4 className="text-[15px] font-semibold">Mensaje preparado</h4>
               <CopiarTexto texto={mensaje} etiqueta="Copiar mensaje" etiquetaHecho="Mensaje copiado" />
