@@ -60,7 +60,7 @@ export default async function OfertasPage({ searchParams }: { searchParams: Prom
   return (
     <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_480px] lg:items-start lg:gap-6">
       <div className={`max-w-[760px] space-y-4 ${hayDetalle ? 'hidden lg:block' : ''}`}>
-        <div role="tablist" aria-label="Vistas de ofertas" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+        <div role="tablist" aria-label="Vistas de ofertas" className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1">
           {TABS.map((t) => {
             const activa = f.tab === t.id;
             return (
@@ -114,7 +114,7 @@ export default async function OfertasPage({ searchParams }: { searchParams: Prom
       </div>
 
       {hayDetalle && oferta && (
-        <aside aria-label="Detalle de la oferta" className="lg:sticky lg:top-28 lg:max-h-[calc(100dvh-8rem)] lg:overflow-y-auto">
+        <aside aria-label="Detalle de la oferta" className="lg:sticky lg:top-[84px] lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto">
           <DetallePanel o={oferta} eventos={eventos} cerrarHref={cerrarHref} />
         </aside>
       )}

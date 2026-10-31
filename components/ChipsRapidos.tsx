@@ -26,7 +26,7 @@ export default function ChipsRapidos({ f, plataformas }: { f: Filtros; plataform
 
   return (
     <div className="space-y-2">
-      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1" role="group" aria-label="Atajos de filtro">
+      <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1" role="group" aria-label="Atajos de filtro">
         <Link href={quitar({ dia: '' })} scroll={false} aria-current={!f.dia ? 'true' : undefined} className={chip(!f.dia)}>Cualquier día</Link>
         {DIA_FILTRO.map((d) => (
           <Link key={d.valor} href={quitar({ dia: f.dia === d.valor ? '' : d.valor })} scroll={false} aria-current={f.dia === d.valor ? 'true' : undefined} className={chip(f.dia === d.valor)}>

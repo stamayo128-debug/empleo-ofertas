@@ -45,7 +45,7 @@ export default function OfertaCard({
 
   return (
     <article
-      className={`card relative p-4 ${seleccionada ? 'border-accent ring-1 ring-accent' : ''} ${vencida ? 'border-ambar' : ''} ${recuperada && !vencida ? 'border-l-4 border-l-ambar' : ''}`}
+      className={`card relative p-4 ${seleccionada ? 'ring-2 ring-accent' : vencida ? 'ring-2 ring-ambar' : recuperada ? 'ring-1 ring-ambar/50' : ''}`}
     >
       <div className="flex items-start justify-between gap-3">
         <p className="min-h-5 min-w-0 flex-1 text-sm">

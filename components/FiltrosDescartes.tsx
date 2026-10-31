@@ -37,14 +37,14 @@ export default function FiltrosDescartes({
 
   return (
     <div className={`space-y-3 transition-opacity ${cargando ? 'opacity-60' : ''}`} aria-busy={cargando}>
-      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1" role="group" aria-label="Rango de días">
+      <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1" role="group" aria-label="Rango de días">
         {RANGOS.map((r) => (
           <Link key={r.id} href={href({ ...valores, rango: r.id })} scroll={false} aria-current={valores.rango === r.id ? 'true' : undefined} className={chip(valores.rango === r.id)}>
             {r.etiqueta}
           </Link>
         ))}
       </div>
-      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1" role="group" aria-label="Motivo del descarte">
+      <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1" role="group" aria-label="Motivo del descarte">
         <Link href={href({ ...valores, motivo: '' })} scroll={false} aria-current={!valores.motivo ? 'true' : undefined} className={chip(!valores.motivo)}>Todos los motivos</Link>
         {motivosConDescartes.map((m) => (
           <Link key={m} href={href({ ...valores, motivo: valores.motivo === m ? '' : m })} scroll={false} aria-current={valores.motivo === m ? 'true' : undefined} className={chip(valores.motivo === m)}>
