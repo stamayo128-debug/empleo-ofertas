@@ -6,7 +6,7 @@ import { iniciarSesion, type EstadoLogin } from '@/app/login/actions';
 export default function LoginForm() {
   const [estado, accion, pendiente] = useActionState<EstadoLogin, FormData>(iniciarSesion, { error: null });
   return (
-    <form action={accion} className="card space-y-4 p-5">
+    <form action={accion} className="card space-y-4 p-6">
       <div>
         <label htmlFor="password" className="label">Contraseña</label>
         <input

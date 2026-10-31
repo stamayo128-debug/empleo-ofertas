@@ -19,7 +19,7 @@ const LISTAS: { k: ListaClave; t: string; ayuda?: string }[] = [
   { k: 'palabras_ambiguas', t: 'Palabras dudosas (se lee el anuncio antes de decidir)' },
   { k: 'palabras_junior', t: 'Palabras que indican junior' },
   { k: 'municipios_bizkaia', t: 'Municipios de Bizkaia' },
-  { k: 'municipios_madrid_preferentes', t: 'Madrid: municipios preferentes (cerca de Leganés)' },
+  { k: 'municipios_madrid_preferentes', t: 'Madrid: municipios preferentes (cerca de Leganés)', ayuda: 'Un municipio por línea. Leganés cuenta siempre. En Descartes te avisamos de los descartes por ubicación que caen en estos municipios.' },
   { k: 'zonas_cercanas', t: 'Zonas cercanas (Álava, Gipuzkoa…)' },
   { k: 'idiomas_candidato', t: 'Idiomas que tengo (indica el nivel)', ayuda: 'Por ejemplo: Inglés B2' },
 ];
@@ -82,7 +82,7 @@ export default function CriteriosForm({ criterios }: { criterios: Criterios }) {
 
   return (
     <form onSubmit={guardar} className="space-y-5">
-      <section className="card space-y-4 p-4" aria-labelledby="c-perfil">
+      <section className="card space-y-4 p-5" aria-labelledby="c-perfil">
         <h2 id="c-perfil" className="text-base font-semibold">Perfil e indicaciones</h2>
         <div>
           <label htmlFor="perfil" className="label">Mi perfil (lo usa el agente para valorar el encaje)</label>
@@ -94,7 +94,7 @@ export default function CriteriosForm({ criterios }: { criterios: Criterios }) {
         </div>
       </section>
 
-      <section className="card space-y-4 p-4" aria-labelledby="c-listas">
+      <section className="card space-y-4 p-5" aria-labelledby="c-listas">
         <h2 id="c-listas" className="text-base font-semibold">Listas <span className="meta font-normal">(una entrada por línea)</span></h2>
         {LISTAS.map(({ k, t, ayuda }) => (
           <div key={k}>
@@ -109,7 +109,7 @@ export default function CriteriosForm({ criterios }: { criterios: Criterios }) {
         ))}
       </section>
 
-      <section className="card space-y-4 p-4" aria-labelledby="c-num">
+      <section className="card space-y-4 p-5" aria-labelledby="c-num">
         <h2 id="c-num" className="text-base font-semibold">Límites</h2>
         {NUMEROS.map(({ k, t, step, min, max }) => (
           <div key={k}>
@@ -122,7 +122,7 @@ export default function CriteriosForm({ criterios }: { criterios: Criterios }) {
         ))}
       </section>
 
-      <section className="card p-4" aria-labelledby="c-sw">
+      <section className="card p-5" aria-labelledby="c-sw">
         <h2 id="c-sw" className="mb-2 text-base font-semibold">Qué aceptar</h2>
         <ul>
           {INTERRUPTORES.map(({ k, t }) => (

@@ -1,3 +1,5 @@
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import CriteriosForm from '@/components/CriteriosForm';
 import EmptyState from '@/components/EmptyState';
 import NotasAgenteLista from '@/components/NotasAgenteLista';
@@ -13,6 +15,9 @@ export default async function CriteriosPage() {
 
   return (
     <div className="max-w-[760px] space-y-5">
+      <Link href="/ajustes" className="inline-flex min-h-11 items-center gap-2 text-[15px] font-medium text-accent md:hidden">
+        <ArrowLeft size={18} aria-hidden /> Ajustes
+      </Link>
       <header className="space-y-1">
         <h1 className="text-xl font-semibold">Criterios de búsqueda</h1>
         <p className="text-[15px]">
