@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import ChipsRapidos from '@/components/ChipsRapidos';
 import DetallePanel from '@/components/DetallePanel';
 import EmptyState from '@/components/EmptyState';
 import FiltroBar from '@/components/FiltroBar';
@@ -77,11 +78,11 @@ export default async function OfertasPage({ searchParams }: { searchParams: Prom
         </div>
 
         <FiltroBar filtros={f} plataformas={plataformas} />
+        <ChipsRapidos f={f} plataformas={plataformas} />
 
         {f.tab === 'todas' && (
           <Link
-            role="switch"
-            aria-checked={f.descartadas}
+            aria-label={`Incluir descartadas: ${f.descartadas ? 'activado' : 'desactivado'}`}
             href={hrefOfertas({ ...f, descartadas: !f.descartadas })}
             className="inline-flex min-h-11 items-center gap-3 text-[15px]"
           >

@@ -34,7 +34,7 @@ export function NavEscritorio() {
 export function NavMovil() {
   const path = usePathname();
   return (
-    <nav aria-label="Principal" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-border bg-surface md:hidden">
+    <nav aria-label="Principal" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-border bg-surface pb-[env(safe-area-inset-bottom)] md:hidden">
       {ENLACES.map(({ href, etiqueta, Icono }) => (
         <Link
           key={href} href={href} aria-current={activo(path, href) ? 'page' : undefined}

@@ -4,7 +4,9 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from './db';
 import { ENCAJES, ESTADOS, MOTIVOS_DESCARTE_USUARIO, RESPUESTAS } from './constantes';
+import { obtenerCriterios } from './queries';
 import { requireSession } from './session';
+import { enZonaPreferente } from './ubicacion';
 
 const texto = (max: number) =>
   z.string().max(max).transform((s) => (s.trim() === '' ? null : s)).nullable();
@@ -61,11 +63,17 @@ export async function recuperarDescarte(idEntrada: number): Promise<{ ok: true; 
   if (d.recuperada_como) return { ok: false, error: 'Ya estaba recuperada' };
 
   const zonasValidas = ['bizkaia', 'madrid', 'remoto_espana', 'euskadi_otra', 'otra'];
+  // Si el lugar está en tus municipios preferentes (o es Leganés) la oferta recuperada entra como Madrid,
+  // en vez de heredar la zona 'otra' con la que el agente la descartó.
+  const criterios = await obtenerCriterios().catch(() => null);
+  const zona = enZonaPreferente(d.lugar, criterios?.municipios_madrid_preferentes)
+    ? 'madrid'
+    : zonasValidas.includes(d.zona) ? d.zona : 'otra';
   const ins = await db().from('ofertas').insert({
     puesto: d.puesto || 'Sin título',
     empresa: d.empresa || 'Sin empresa',
     lugar: d.lugar,
-    zona: zonasValidas.includes(d.zona) ? d.zona : 'otra',
+    zona,
     plataforma: d.plataforma,
     url: d.url ?? '',
     url_canonica: d.url_canonica ?? `descarte:${d.id}`,

@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronDown, Search, SlidersHorizontal } from 'lucide-react';
-import { ENCAJES, ESTADOS, EXPERIENCIA_FILTRO, MODALIDAD_FILTRO, ORDENES, SALARIO_FILTRO, ZONAS_FILTRO } from '@/lib/constantes';
+import { DIA_FILTRO, ENCAJES, ESTADOS, EXPERIENCIA_FILTRO, MODALIDAD_FILTRO, ORDENES, SALARIO_FILTRO, ZONAS_FILTRO } from '@/lib/constantes';
 import { hrefOfertas, type Filtros } from '@/lib/filtros';
 import FiltrosSheet from './FiltrosSheet';
 
-type Valores = Pick<Filtros, 'plat' | 'estado' | 'encaje' | 'zona' | 'mod' | 'sal' | 'exp' | 'orden'>;
+type Valores = Pick<Filtros, 'plat' | 'estado' | 'encaje' | 'zona' | 'mod' | 'sal' | 'exp' | 'orden' | 'dia' | 'origen'>;
 
 function Campos({
   v, plataformas, onCambio, idp, plegable,
@@ -28,6 +28,24 @@ function Campos({
         </li>
       ))}
     </ul>
+  );
+  const dia = (
+    <div key="dia">
+      <label htmlFor={`${idp}-dia`} className={etiqueta}>Detectadas</label>
+      <select id={`${idp}-dia`} className="input w-auto" value={v.dia} onChange={(e) => onCambio({ dia: e.target.value })}>
+        <option value="">Detectadas: cualquier día</option>
+        {DIA_FILTRO.map((m) => <option key={m.valor} value={m.valor}>Detectadas: {m.etiqueta.toLowerCase()}</option>)}
+      </select>
+    </div>
+  );
+  const origen = (
+    <label key="origen" className="flex min-h-11 items-center gap-3 whitespace-nowrap text-[15px]">
+      <input
+        type="checkbox" className="size-5 accent-[var(--accent)]" checked={v.origen === 'recuperada'}
+        onChange={(e) => onCambio({ origen: e.target.checked ? 'recuperada' : '' })}
+      />
+      Solo recuperadas
+    </label>
   );
   const zona = (
     <div key="zona">
@@ -96,19 +114,19 @@ function Campos({
     // Hoja de filtros (móvil): todo en este orden.
     return (
       <>
-        {zona}{modalidad}{experiencia}{salario}
+        {dia}{zona}{modalidad}{experiencia}{salario}
         <fieldset>
           <legend className="label">Plataforma</legend>
           {plat}
         </fieldset>
-        {estado}{encaje}{orden}
+        {estado}{encaje}{origen}{orden}
       </>
     );
   }
-  const extra = v.plat.length + (v.estado ? 1 : 0) + (v.encaje ? 1 : 0);
+  const extra = v.plat.length + (v.estado ? 1 : 0) + (v.encaje ? 1 : 0) + (v.origen ? 1 : 0);
   return (
     <>
-      {zona}{modalidad}{experiencia}{salario}
+      {dia}{zona}{modalidad}{experiencia}{salario}
       <details className="relative">
         <summary className="btn cursor-pointer list-none">
           Más filtros{extra ? ` (${extra})` : ''} <ChevronDown size={16} aria-hidden />
@@ -120,6 +138,7 @@ function Campos({
           </fieldset>
           {estado}
           {encaje}
+          {origen}
         </div>
       </details>
       {orden}
@@ -129,6 +148,7 @@ function Campos({
 
 export default function FiltroBar({ filtros, plataformas }: { filtros: Filtros; plataformas: string[] }) {
   const router = useRouter();
+  const [cargando, iniciar] = useTransition();
   const [q, setQ] = useState(filtros.q);
   const [abierto, setAbierto] = useState(false);
   const [borrador, setBorrador] = useState<Valores>(filtros);
@@ -138,7 +158,7 @@ export default function FiltroBar({ filtros, plataformas }: { filtros: Filtros; 
   useEffect(() => () => { if (temporizador.current) clearTimeout(temporizador.current); }, []);
 
   function ir(parcial: Partial<Filtros>) {
-    router.replace(hrefOfertas({ ...filtros, ...parcial }), { scroll: false });
+    iniciar(() => router.replace(hrefOfertas({ ...filtros, ...parcial }), { scroll: false }));
   }
   function buscar(texto: string) {
     setQ(texto);
@@ -146,10 +166,10 @@ export default function FiltroBar({ filtros, plataformas }: { filtros: Filtros; 
     temporizador.current = setTimeout(() => ir({ q: texto.trim() }), 400);
   }
   const activosMovil = filtros.plat.length + (filtros.estado ? 1 : 0) + (filtros.encaje ? 1 : 0) + (filtros.zona ? 1 : 0) +
-    (filtros.mod ? 1 : 0) + (filtros.sal ? 1 : 0) + (filtros.exp ? 1 : 0);
+    (filtros.mod ? 1 : 0) + (filtros.sal ? 1 : 0) + (filtros.exp ? 1 : 0) + (filtros.dia ? 1 : 0) + (filtros.origen ? 1 : 0);
 
   return (
-    <div className="space-y-3">
+    <div className={`space-y-3 transition-opacity ${cargando ? 'opacity-60' : ''}`} aria-busy={cargando}>
       <div className="flex gap-2">
         <div className="relative flex-1">
           <label htmlFor="busqueda" className="sr-only">Buscar por puesto, empresa o lugar</label>
@@ -175,7 +195,7 @@ export default function FiltroBar({ filtros, plataformas }: { filtros: Filtros; 
         abierto={abierto}
         onCerrar={() => setAbierto(false)}
         onAplicar={() => { setAbierto(false); ir(borrador); }}
-        onLimpiar={() => { setAbierto(false); ir({ plat: [], estado: '', encaje: '', zona: '', mod: '', sal: '', exp: '', orden: 'relevancia', q: '' }); }}
+        onLimpiar={() => { setAbierto(false); ir({ plat: [], estado: '', encaje: '', zona: '', mod: '', sal: '', exp: '', dia: '', origen: '', orden: 'relevancia', q: '' }); }}
       >
         <Campos v={borrador} plataformas={plataformas} onCambio={(p) => setBorrador({ ...borrador, ...p })} idp="m" plegable={false} />
       </FiltrosSheet>

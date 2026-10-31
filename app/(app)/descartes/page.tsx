@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import { ExternalLink } from 'lucide-react';
 import EmptyState from '@/components/EmptyState';
+import FiltrosDescartes from '@/components/FiltrosDescartes';
 import RecuperarBoton from '@/components/RecuperarBoton';
 import { MOTIVO_ETIQUETA, MOTIVO_USUARIO_ETIQUETA } from '@/lib/constantes';
 import type { SP } from '@/lib/filtros';
 import { fmtDia, fmtHora, urlSegura } from '@/lib/format';
-import { descartadasPorTi, listarDescartes, plataformasDescartes, resumenMotivos30d, type FiltroDescartes } from '@/lib/queries';
+import { descartadasPorTi, listarDescartes, obtenerCriterios, plataformasDescartes, resumenMotivos30d, type FiltroDescartes } from '@/lib/queries';
+import { enZonaPreferente } from '@/lib/ubicacion';
 import { requireSession } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
@@ -26,9 +28,16 @@ export default async function DescartesPage({ searchParams }: { searchParams: Pr
   const lim = Math.min(Math.max(parseInt(uno(sp.lim), 10) || 100, 100), 1000);
   const f: FiltroDescartes = { motivo, plat, rango, lim };
 
-  const [lista, resumen, plataformas, tuyas] = await Promise.all([
+  const [lista, resumen, plataformas, tuyas, criterios] = await Promise.all([
     listarDescartes(f), resumenMotivos30d(), plataformasDescartes(), descartadasPorTi(50),
+    obtenerCriterios().catch(() => null), // sin criterios solo se pierde el aviso de "posible falso descarte"
   ]);
+  // Descartes por ubicación cuyo lugar está en tus municipios preferentes (o en la ciudad base): probables errores.
+  const preferentes = criterios?.municipios_madrid_preferentes ?? [];
+  const esFalso = (d: { motivo: string; lugar: string | null; recuperada_como: number | null }) =>
+    d.motivo.startsWith('ubicacion') && !d.recuperada_como && enZonaPreferente(d.lugar, preferentes);
+  const nFalsos = lista.filas.filter(esFalso).length;
+  const motivosConDescartes = resumen.filter((r) => r.n_30d > 0).map((r) => r.motivo);
 
   const mas = new URLSearchParams();
   if (motivo) mas.set('motivo', motivo);
@@ -78,30 +87,14 @@ export default async function DescartesPage({ searchParams }: { searchParams: Pr
         </details>
       )}
 
-      <form method="get" className="flex flex-wrap items-end gap-3">
-        <div>
-          <label htmlFor="f-motivo" className="label">Motivo</label>
-          <select id="f-motivo" name="motivo" defaultValue={motivo} className="input w-auto">
-            <option value="">Todos</option>
-            {Object.entries(MOTIVO_ETIQUETA).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="f-plat" className="label">Plataforma</label>
-          <select id="f-plat" name="plat" defaultValue={plat} className="input w-auto">
-            <option value="">Todas</option>
-            {plataformas.map((p) => <option key={p} value={p}>{p}</option>)}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="f-rango" className="label">Rango</label>
-          <select id="f-rango" name="rango" defaultValue={rango} className="input w-auto">
-            {RANGOS.map((r) => <option key={r.id} value={r.id}>{r.etiqueta}</option>)}
-          </select>
-        </div>
-        <button type="submit" className="btn btn-primary">Filtrar</button>
-        <Link href="/descartes" className="btn">Limpiar</Link>
-      </form>
+      <FiltrosDescartes valores={{ motivo, plat, rango }} plataformas={plataformas} motivosConDescartes={motivosConDescartes} />
+
+      {nFalsos > 0 && (
+        <p role="note" className="rounded-[10px] border border-ambar px-4 py-3 text-[15px]">
+          <span className="font-medium text-ambar">{nFalsos === 1 ? '1 descarte' : `${nFalsos} descartes`} por ubicación</span>{' '}
+          {nFalsos === 1 ? 'está' : 'están'} en tu zona (cerca de Leganés). Puede que el descarte sea un error: revísalos y recupéralos si encajan.
+        </p>
+      )}
 
       {lista.filas.length === 0 ? (
         <EmptyState>No hay descartes con estos filtros.</EmptyState>
@@ -123,12 +116,13 @@ export default async function DescartesPage({ searchParams }: { searchParams: Pr
                   <p className="mt-1 font-medium">{titulo}</p>
                   <p className="meta">{d.detalle}</p>
                   <div className="mt-2 flex flex-wrap items-center gap-3">
+                    {esFalso(d) && <span className="badge border-ambar text-ambar">Posible falso descarte: está en tu zona</span>}
                     {d.recuperada_como ? (
                       <Link href={`/?sel=${d.recuperada_como}`} className="text-[15px] font-medium text-accent underline-offset-2 hover:underline">
                         Recuperada: ver oferta
                       </Link>
                     ) : (
-                      <RecuperarBoton id={d.id} />
+                      <RecuperarBoton id={d.id} sugerida={esFalso(d)} />
                     )}
                     {url && (
                       <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-1 px-1 text-[15px] font-medium text-accent hover:underline">
