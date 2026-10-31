@@ -49,8 +49,8 @@ export function SeleccionProvider({ children }: { children: React.ReactNode }) {
       )}
       {children}
       {activo && (
-        <div className="fixed inset-x-0 bottom-[76px] z-40 flex justify-center px-4 md:bottom-6">
-          <div role="region" aria-label="Marcado en lote" className="flex max-w-full flex-wrap items-center justify-center gap-2 rounded-[10px] border border-border bg-surface px-4 py-2 shadow-lg">
+        <div className="fixed inset-x-0 bottom-[calc(6.25rem+env(safe-area-inset-bottom))] z-40 flex justify-center px-4 md:bottom-6">
+          <div role="region" aria-label="Marcado en lote" className="flex max-w-full flex-wrap items-center justify-center gap-2 rounded-tile border border-border bg-surface px-4 py-2 shadow-lg">
             <span className="num text-[15px] font-medium" aria-live="polite">
               {seleccion.size} {seleccion.size === 1 ? 'seleccionada' : 'seleccionadas'}
             </span>

@@ -79,6 +79,15 @@ export async function contadoresTabs(): Promise<Record<TabId, number>> {
   return out;
 }
 
+/** Ofertas pendientes de enviar (contador del botón central de la barra inferior). */
+export const contarPorEnviar = cache(async (): Promise<number> => {
+  const res = (await baseTab(db().from('v_ofertas_web').select('id', { count: 'exact', head: true }), 'porenviar', false)) as unknown as {
+    count: number | null; error: { message: string } | null;
+  };
+  if (res.error) throw new Error('Error de base de datos');
+  return res.count ?? 0;
+});
+
 export async function listarOfertas(f: Filtros): Promise<{ filas: OfertaLista[]; total: number }> {
   // Solo las columnas que usan la tarjeta y sus botones; el detalle pide la fila completa aparte.
   let q = db().from('v_ofertas_web').select(COLUMNAS_LISTA, { count: 'exact' });

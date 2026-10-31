@@ -26,9 +26,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastCtx.Provider value={{ mostrar }}>
       {children}
-      <div className="pointer-events-none fixed inset-x-0 bottom-[76px] z-50 flex justify-center px-4 md:bottom-6" aria-live="polite" role="status">
+      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(6.25rem+env(safe-area-inset-bottom))] z-50 flex justify-center px-4 md:bottom-6" aria-live="polite" role="status">
         {aviso && (
-          <div key={aviso.id} className="pointer-events-auto flex max-w-md items-center gap-3 rounded-[10px] border border-border bg-fg px-4 py-2 text-[15px] text-bg">
+          <div key={aviso.id} className="pointer-events-auto flex max-w-md items-center gap-3 rounded-tile border border-border bg-fg px-4 py-2 text-[15px] text-bg">
             <span>{aviso.texto}</span>
             {aviso.accion && (
               <button

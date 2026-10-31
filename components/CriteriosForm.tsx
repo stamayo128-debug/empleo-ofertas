@@ -140,7 +140,7 @@ export default function CriteriosForm({ criterios }: { criterios: Criterios }) {
       </section>
 
       <div className="sticky bottom-[64px] z-20 space-y-2 md:static">
-        {error && <p role="alert" className="rounded-[10px] border border-rojo bg-surface px-3 py-2 text-sm text-rojo">{error}</p>}
+        {error && <p role="alert" className="rounded-tile border border-rojo bg-surface px-3 py-2 text-sm text-rojo">{error}</p>}
         <button type="submit" className="btn btn-primary w-full md:w-auto" disabled={pendiente}>
           {pendiente ? 'Guardando…' : 'Guardar criterios'}
         </button>

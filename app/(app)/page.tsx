@@ -69,9 +69,9 @@ export default async function OfertasPage({ searchParams }: { searchParams: Prom
                 role="tab"
                 aria-selected={activa}
                 href={hrefOfertas({ ...f, tab: t.id })}
-                className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-[10px] border px-4 text-[15px] font-medium ${activa ? 'border-accent bg-accent-soft text-accent' : 'border-border bg-surface text-fg'}`}
+                className={`chip min-h-11 gap-2 text-[15px] ${activa ? 'chip-on' : ''}`}
               >
-                {t.etiqueta} <span className="num text-muted">{contadores[t.id]}</span>
+                {t.etiqueta} <span className={`num ${activa ? 'opacity-80' : 'text-muted'}`}>{contadores[t.id]}</span>
               </Link>
             );
           })}

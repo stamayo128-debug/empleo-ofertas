@@ -90,7 +90,7 @@ export default async function DescartesPage({ searchParams }: { searchParams: Pr
       <FiltrosDescartes valores={{ motivo, plat, rango }} plataformas={plataformas} motivosConDescartes={motivosConDescartes} />
 
       {nFalsos > 0 && (
-        <p role="note" className="rounded-[10px] border border-ambar px-4 py-3 text-[15px]">
+        <p role="note" className="rounded-tile border border-ambar px-4 py-3 text-[15px]">
           <span className="font-medium text-ambar">{nFalsos === 1 ? '1 descarte' : `${nFalsos} descartes`} por ubicación</span>{' '}
           {nFalsos === 1 ? 'está' : 'están'} en tu zona (cerca de Leganés). Puede que el descarte sea un error: revísalos y recupéralos si encajan.
         </p>
