@@ -10,8 +10,8 @@ const MAX_EDAD_MS = 60 * 60 * 1000;
 
 /** Enlace "Abrir oferta": si la oferta está pendiente de enviar, recuerda cuál se abrió. */
 export default function AbrirOfertaLink({
-  id, empresa, estado, url, className, children,
-}: { id: number; empresa: string; estado: string; url: string; className: string; children?: React.ReactNode }) {
+  id, empresa, estado, url, className, etiqueta = 'Abrir oferta', children,
+}: { id: number; empresa: string; estado: string; url: string; className: string; etiqueta?: string; children?: React.ReactNode }) {
   return (
     <a
       href={url} target="_blank" rel="noopener noreferrer" className={className}
@@ -22,7 +22,7 @@ export default function AbrirOfertaLink({
         } catch { /* sin almacenamiento: simplemente no habrá recordatorio */ }
       }}
     >
-      Abrir oferta <ExternalLink size={16} aria-hidden />
+      {etiqueta} <ExternalLink size={16} aria-hidden />
       <span className="sr-only">(se abre en otra pestaña)</span>
       {children}
     </a>

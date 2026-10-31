@@ -97,6 +97,8 @@ export type Oferta = {
   descarte_usuario_motivo: string | null;
   descarte_usuario_detalle: string | null;
   descartada_en: string | null;
+  /** Cuándo se guardó con el marcador; null si no está guardada. */
+  guardada_en: string | null;
 };
 
 /** Subconjunto de columnas que carga la lista de ofertas (la tarjeta y sus botones). */
@@ -105,7 +107,7 @@ export type OfertaLista = Pick<
   | 'id' | 'codigo' | 'puesto' | 'empresa' | 'lugar' | 'municipio' | 'modalidad' | 'plataforma' | 'plataforma_principal'
   | 'url' | 'url_principal' | 'fuentes' | 'fecha_publicacion' | 'fecha_publicacion_estimada' | 'salario' | 'tiene_salario'
   | 'descripcion_clara' | 'calidad_datos' | 'encaje' | 'estado' | 'sin_revisar' | 'por_verificar' | 'origen'
-  | 'respuesta_tipo' | 'proximo_seguimiento' | 'fecha_envio' | 'descarte_usuario_motivo'
+  | 'respuesta_tipo' | 'proximo_seguimiento' | 'fecha_envio' | 'descarte_usuario_motivo' | 'guardada_en'
 >;
 
 /** Fila de "Descartadas por ti" (subconjunto de v_ofertas_web). */
