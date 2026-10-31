@@ -1,15 +1,20 @@
+import { Briefcase, ChevronDown, MapPin } from 'lucide-react';
 import { EVENTO_ETIQUETA, MODALIDAD_ETIQUETA, MOTIVO_USUARIO_ETIQUETA, ZONA_ETIQUETA } from '@/lib/constantes';
 import { fmtCorta, fmtDia, fmtFechaHora, herramientasYAptitudes, lista, publicadaTexto, txt, urlSegura } from '@/lib/format';
 import type { Evento, Fuente, Oferta } from '@/lib/types';
 import { EncajeBadge, EstadoBadge } from './Badge';
 import AbrirOfertaLink from './AbrirOfertaLink';
+import Avatar from './Avatar';
+import BotonGuardar from './BotonGuardar';
 import CopiarEnlace from './CopiarEnlace';
 import CopiarTexto from './CopiarTexto';
 import DescartarBoton from './DescartarBoton';
 import { ControlesCandidatura, ControlesRespuesta } from './DetalleControles';
+import DetallePestanas from './DetallePestanas';
 import DetalleShell from './DetalleShell';
 import EnviadaBoton from './EnviadaBoton';
 import FuentesLista from './FuentesLista';
+import LeerMas from './LeerMas';
 import NotasEditor from './NotasEditor';
 import PrepararCandidatura from './PrepararCandidatura';
 import Seccion from './Seccion';
@@ -65,11 +70,8 @@ export default function DetallePanel({ o, eventos, cerrarHref }: { o: Oferta; ev
   }
 
   const vistazo: [string, string][] = [
-    ['Experiencia', txt(o.experiencia_requerida)],
     ['Formación', txt(o.formacion_requerida)],
     ['Idiomas', idiomas.join(' · ') || null],
-    ['Jornada', txt(o.jornada)],
-    ['Contrato', txt(o.tipo_contrato)],
     ['Salario', txt(o.salario)],
     ['Nivel', txt(o.nivel)],
     ['Solicitantes', txt(o.solicitantes)],
@@ -80,32 +82,23 @@ export default function DetallePanel({ o, eventos, cerrarHref }: { o: Oferta; ev
     : null;
   const nReq = oblig.length + desea.length;
 
-  return (
-    <DetalleShell titulo={o.puesto} cerrarHref={cerrarHref}>
-      <header className="-mt-2 space-y-2">
-        <p className="text-[16px]">{o.empresa}</p>
-        {lugar && <p className="meta">{lugar}</p>}
-        <div className="flex flex-wrap items-center gap-2">
-          <EncajeBadge encaje={o.encaje} />
-          <EstadoBadge estado={o.estado} />
-          <span className="meta num">{o.codigo}</span>
-          <span className="meta">· {publicadaTexto(o.fecha_publicacion, o.fecha_publicacion_estimada)}</span>
-        </div>
-        <div className="flex flex-wrap items-center gap-3 pt-2">
-          <EnviadaBoton id={o.id} estado={o.estado} fechaEnvio={o.fecha_envio} />
-          {url && <AbrirOfertaLink id={o.id} empresa={o.empresa} estado={o.estado} url={url} className="btn btn-primary" />}
-          {mensaje && <CopiarTexto texto={mensaje} etiqueta="Copiar mensaje" etiquetaHecho="Mensaje copiado" />}
-          {cvUrl && (
-            <a href={cvUrl} target="_blank" rel="noopener noreferrer" className="btn">
-              Abrir CV v{o.cv_doc_version}
-              <span className="sr-only"> (se abre en otra pestaña)</span>
-            </a>
-          )}
-          {url && <CopiarEnlace url={url} />}
-          {o.estado !== 'Descartada' && <DescartarBoton key={`d-${o.id}`} ids={[o.id]} />}
-        </div>
-      </header>
+  const salario = o.tiene_salario ? txt(o.salario) : null;
+  const jornada = txt(o.jornada);
+  const contrato = txt(o.tipo_contrato);
+  const experiencia = txt(o.experiencia_requerida) ?? (o.experiencia_min_anios != null ? `Desde ${o.experiencia_min_anios} ${o.experiencia_min_anios === 1 ? 'año' : 'años'}` : null);
+  const ubicacion = o.municipio ?? o.lugar;
 
+  const barra = url ? (
+    <AbrirOfertaLink
+      id={o.id} empresa={o.empresa} estado={o.estado} url={url} etiqueta="Abrir oferta"
+      className="btn btn-primary w-full text-[16px]"
+    />
+  ) : (
+    <p className="meta text-center">Esta oferta no tiene enlace para abrir.</p>
+  );
+
+  const avisos = (
+    <>
       {o.por_verificar && (
         <div role="note" className="space-y-3 rounded-tile border border-ambar px-3 py-3">
           <p className="text-[15px]"><span className="font-semibold text-ambar">Por verificar:</span> {o.verificar_motivo ?? 'necesita una comprobación'}</p>
@@ -128,15 +121,99 @@ export default function DetallePanel({ o, eventos, cerrarHref }: { o: Oferta; ev
       )}
 
       {calidad === 'solo_basicos' ? (
-        <p role="note" className="rounded-tile border border-border bg-accent-soft px-3 py-2 text-sm text-muted">
+        <p role="note" className="rounded-tile bg-accent-soft px-3 py-2 text-sm text-muted">
           Aún no hemos leído el anuncio: solo tenemos título, empresa y lugar del listado. Ábrelo para ver los detalles.
         </p>
       ) : calidad === 'parcial' ? (
-        <p role="note" className="rounded-tile border border-border bg-accent-soft px-3 py-2 text-sm text-muted">
+        <p role="note" className="rounded-tile bg-accent-soft px-3 py-2 text-sm text-muted">
           Ficha parcial: el anuncio no daba todos los datos.
         </p>
       ) : null}
+    </>
+  );
 
+  const tira = (jornada || contrato || modalidad) ? (
+    <dl className="tile grid grid-cols-3 divide-x divide-border !p-3 text-center">
+      {([['Jornada', jornada], ['Contrato', contrato], ['Modalidad', modalidad || null]] as const).map(([k, v]) => (
+        <div key={k} className="min-w-0 px-2">
+          <dd className="break-words text-[15px] font-semibold">{v ?? 'No indica'}</dd>
+          <dt className="meta">{k}</dt>
+        </div>
+      ))}
+    </dl>
+  ) : null;
+
+  const mosaicos = (
+    <div className="grid grid-cols-2 gap-3">
+      <div className="tile">
+        <Briefcase size={22} aria-hidden className="text-muted" />
+        <p className="meta mt-2">Experiencia</p>
+        <p className="break-words text-[15px] font-semibold">{experiencia ?? 'No indica'}</p>
+      </div>
+      <div className="tile">
+        <MapPin size={22} aria-hidden className="text-muted" />
+        <p className="meta mt-2">Ubicación</p>
+        <p className="break-words text-[15px] font-semibold">{ubicacion ?? 'No indica'}</p>
+        {ZONA_ETIQUETA[o.zona] && <p className="meta">{ZONA_ETIQUETA[o.zona]}</p>}
+      </div>
+    </div>
+  );
+
+  return (
+    <DetalleShell
+      titulo={o.puesto}
+      empresa={o.empresa}
+      cerrarHref={cerrarHref}
+      guardar={<BotonGuardar key={`g-${o.id}`} id={o.id} guardada={!!o.guardada_en} />}
+      barra={barra}
+    >
+      <header className="space-y-3 pb-5 text-center">
+        <div className="flex justify-center"><Avatar nombre={o.empresa} grande /></div>
+        <h2 aria-hidden className="text-[22px] font-semibold leading-snug">{o.puesto}</h2>
+        <p className="text-[16px] text-muted">
+          {salario ?? 'Salario no indicado'}
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <EncajeBadge encaje={o.encaje} />
+          <EstadoBadge estado={o.estado} />
+          {modalidad && <span className="chip min-h-8 bg-surface-2 shadow-none">{modalidad}</span>}
+        </div>
+        <p className="meta num">{o.codigo} · {publicadaTexto(o.fecha_publicacion, o.fecha_publicacion_estimada)}</p>
+        <div className="flex justify-center pt-1">
+          <EnviadaBoton id={o.id} estado={o.estado} fechaEnvio={o.fecha_envio} />
+        </div>
+        <details className="group mx-auto w-full max-w-sm">
+          <summary className="mx-auto flex min-h-11 w-fit cursor-pointer list-none items-center gap-1 rounded-full px-4 text-[15px] font-medium text-accent [&::-webkit-details-marker]:hidden">
+            Más acciones
+            <ChevronDown size={16} aria-hidden className="transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            {mensaje && <CopiarTexto texto={mensaje} etiqueta="Copiar mensaje" etiquetaHecho="Mensaje copiado" />}
+            {cvUrl && (
+              <a href={cvUrl} target="_blank" rel="noopener noreferrer" className="btn">
+                Abrir CV v{o.cv_doc_version}
+                <span className="sr-only"> (se abre en otra pestaña)</span>
+              </a>
+            )}
+            {url && <CopiarEnlace url={url} />}
+            {o.estado !== 'Descartada' && <DescartarBoton key={`d-${o.id}`} ids={[o.id]} />}
+          </div>
+        </details>
+      </header>
+
+      <DetallePestanas
+        key={o.id}
+        descripcion={
+          <>
+            {avisos}
+            {tira}
+            {descripcion && (
+              <div className="space-y-1">
+                <h3 className="text-[17px] font-semibold">Detalles</h3>
+                <LeerMas texto={descripcion} />
+              </div>
+            )}
+            {mosaicos}
       <Seccion id="encaje" titulo="Encaje" abierta>
         {encaje && (
           <div className="border-l-4 border-accent pl-4">
@@ -153,7 +230,6 @@ export default function DetallePanel({ o, eventos, cerrarHref }: { o: Oferta; ev
           </div>
         )}
       </Seccion>
-
       <Seccion id="vistazo" titulo="De un vistazo" abierta>
         {vistazo.length > 0 && (
           <dl className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
@@ -166,20 +242,13 @@ export default function DetallePanel({ o, eventos, cerrarHref }: { o: Oferta; ev
           </dl>
         )}
       </Seccion>
-
-      <Seccion id="desc" titulo="Este puesto va de…" abierta>
-        {descripcion && <p className="whitespace-pre-wrap">{descripcion}</p>}
-      </Seccion>
-
       <Seccion id="resp-pto" titulo="Qué harás" resumen={resp.length ? plural(resp.length, 'tarea', 'tareas') : undefined}>
         {resp.length > 0 && <Lista items={resp} />}
       </Seccion>
-
       <Seccion id="req" titulo="Requisitos" resumen={nReq ? plural(nReq, 'requisito', 'requisitos') : undefined}>
         {oblig.length > 0 && <Lista titulo={desea.length ? 'Qué piden' : undefined} items={oblig} />}
         {desea.length > 0 && <Lista titulo="Se valora" items={desea} />}
       </Seccion>
-
       <Seccion id="herr" titulo="Herramientas e idiomas">
         {herr.length > 0 && (
           <div>
@@ -202,16 +271,14 @@ export default function DetallePanel({ o, eventos, cerrarHref }: { o: Oferta; ev
           </div>
         )}
       </Seccion>
-
       <Seccion id="ofrece" titulo="Qué ofrecen">
         {ofrece.length > 0 && <Lista items={ofrece} />}
       </Seccion>
-
-      <Seccion id="fuentes" titulo="Dónde se publica" resumen={fuentes.length ? `(${fuentes.length})` : undefined}>
-        {fuentes.length > 0 && <FuentesLista fuentes={fuentes} urlPrincipal={o.url_principal} />}
-      </Seccion>
-
-      <Seccion id="cand" titulo="Candidatura">
+          </>
+        }
+        candidatura={
+          <>
+      <Seccion id="cand" titulo="Candidatura" abierta>
         <ControlesCandidatura
           key={o.id}
           id={o.id}
@@ -238,22 +305,12 @@ export default function DetallePanel({ o, eventos, cerrarHref }: { o: Oferta; ev
           </div>
         )}
       </Seccion>
-
-      <Seccion id="respuesta" titulo="Respuesta">
+      <Seccion id="respuesta" titulo="Respuesta" abierta>
         <ControlesRespuesta key={`r-${o.id}`} id={o.id} respuestaTipo={o.respuesta_tipo} respuesta={o.respuesta ?? ''} />
       </Seccion>
-
-      {(o.contacto_nombre || perfil) && (
-        <Seccion id="contacto" titulo="Contacto publicado">
-          <p>{o.contacto_nombre}{o.contacto_cargo ? ` · ${o.contacto_cargo}` : ''}</p>
-          {perfil && <p><Enlace href={perfil}>Perfil</Enlace></p>}
-        </Seccion>
-      )}
-
       <Seccion id="notas" titulo="Notas">
         <NotasEditor key={`n-${o.id}`} id={o.id} inicial={o.notas ?? ''} />
       </Seccion>
-
       <Seccion id="hist" titulo="Historial">
         {eventos.length === 0 ? (
           <p className="meta">Sin movimientos todavía.</p>
@@ -273,6 +330,25 @@ export default function DetallePanel({ o, eventos, cerrarHref }: { o: Oferta; ev
           </ol>
         )}
       </Seccion>
+          </>
+        }
+        empresa={
+          <>
+      {paginaEmpresa && (
+        <div className="tile">
+          <p className="meta">Página de la empresa</p>
+          <p className="text-[15px] font-medium"><Enlace href={paginaEmpresa}>{paginaEmpresa}</Enlace></p>
+        </div>
+      )}
+      <Seccion id="fuentes" titulo="Dónde se publica" resumen={fuentes.length ? `(${fuentes.length})` : undefined}>
+        {fuentes.length > 0 && <FuentesLista fuentes={fuentes} urlPrincipal={o.url_principal} />}
+      </Seccion>
+      {(o.contacto_nombre || perfil) && (
+        <Seccion id="contacto" titulo="Contacto publicado">
+          <p>{o.contacto_nombre}{o.contacto_cargo ? ` · ${o.contacto_cargo}` : ''}</p>
+          {perfil && <p><Enlace href={perfil}>Perfil</Enlace></p>}
+        </Seccion>
+      )}
 
       <Seccion id="tecnicos" titulo="Datos técnicos">
         <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
@@ -306,6 +382,9 @@ export default function DetallePanel({ o, eventos, cerrarHref }: { o: Oferta; ev
           </>
         )}
       </Seccion>
+          </>
+        }
+      />
     </DetalleShell>
   );
 }
