@@ -93,6 +93,22 @@ export async function recuperarDescarte(idEntrada: number): Promise<{ ok: true; 
   return { ok: true, ofertaId: ins.data.id as number };
 }
 
+// ---------- Guardar una oferta para verla después ----------
+export async function alternarGuardada(idEntrada: number, guardada: boolean): Promise<{ ok: true } | { ok: false; error: string }> {
+  await requireSession();
+  const id = idSchema.safeParse(idEntrada);
+  if (!id.success || typeof guardada !== 'boolean') return { ok: false, error: 'Datos no válidos' };
+  const res = await db().from('ofertas').update({ guardada_en: guardada ? new Date().toISOString() : null })
+    .eq('id', id.data).select('id').maybeSingle();
+  if (res.error || !res.data) {
+    console.error('[alternarGuardada]', res.error?.code ?? '');
+    return { ok: false, error: 'No se pudo guardar' };
+  }
+  revalidatePath('/');
+  revalidatePath('/guardadas');
+  return { ok: true };
+}
+
 // ---------- Marcado rápido de "solicitud enviada" ----------
 const idsSchema = z.array(z.number().int().positive()).min(1).max(200);
 const cambioSchema = z.array(z.strictObject({

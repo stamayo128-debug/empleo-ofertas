@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { Archive, Briefcase, History, Send, Settings } from 'lucide-react';
+import { Bookmark, Briefcase, History, Send, Settings } from 'lucide-react';
 
 const ESCRITORIO = [
   { href: '/', etiqueta: 'Ofertas' },
+  { href: '/guardadas', etiqueta: 'Guardadas' },
   { href: '/descartes', etiqueta: 'Descartes' },
   { href: '/historial', etiqueta: 'Búsquedas' },
   { href: '/criterios', etiqueta: 'Criterios' },
@@ -13,7 +14,7 @@ const ESCRITORIO = [
 ];
 
 function activo(path: string, href: string) {
-  if (href === '/ajustes') return path.startsWith('/ajustes') || path.startsWith('/criterios'); // Criterios cuelga de Ajustes
+  if (href === '/ajustes') return path.startsWith('/ajustes') || path.startsWith('/criterios') || path.startsWith('/descartes'); // cuelgan de Ajustes en el móvil
   return href === '/' ? path === '/' : path.startsWith(href);
 }
 
@@ -46,7 +47,7 @@ function Item({ href, etiqueta, Icono, path }: { href: string; etiqueta: string;
   );
 }
 
-/** Barra inferior flotante: Ofertas · Descartes · [Por enviar] · Búsquedas · Ajustes. */
+/** Barra inferior flotante: Ofertas · Guardadas · [Por enviar] · Búsquedas · Ajustes. */
 export function NavMovil({ porEnviar }: { porEnviar: number }) {
   const path = usePathname();
   const tab = useSearchParams().get('tab');
@@ -57,7 +58,7 @@ export function NavMovil({ porEnviar }: { porEnviar: number }) {
       className="glass fixed inset-x-4 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 grid grid-cols-5 items-center rounded-full border border-border/60 px-2 shadow-card md:hidden"
     >
       <Item href="/" etiqueta="Ofertas" Icono={Briefcase} path={enPorEnviar ? '/otra' : path} />
-      <Item href="/descartes" etiqueta="Descartes" Icono={Archive} path={path} />
+      <Item href="/guardadas" etiqueta="Guardadas" Icono={Bookmark} path={path} />
       <Link
         href="/?tab=porenviar"
         aria-label={`Por enviar, ${porEnviar} pendientes`}

@@ -14,7 +14,7 @@ const COLUMNAS_LISTA = [
   'id', 'codigo', 'puesto', 'empresa', 'lugar', 'municipio', 'modalidad', 'plataforma', 'plataforma_principal',
   'url', 'url_principal', 'fuentes', 'fecha_publicacion', 'fecha_publicacion_estimada', 'salario', 'tiene_salario',
   'descripcion_clara', 'calidad_datos', 'encaje', 'estado', 'sin_revisar', 'por_verificar', 'origen',
-  'respuesta_tipo', 'proximo_seguimiento', 'fecha_envio', 'descarte_usuario_motivo',
+  'respuesta_tipo', 'proximo_seguimiento', 'fecha_envio', 'descarte_usuario_motivo', 'guardada_en',
 ].join(',');
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -126,6 +126,14 @@ const plataformasDescartesCache = unstable_cache(() => leerPlataformas('descarte
 
 export async function plataformasDisponibles(): Promise<string[]> {
   try { return await plataformasOfertasCache(); } catch { return leerPlataformas('ofertas'); }
+}
+
+/** Ofertas guardadas con el marcador, la última guardada primero. */
+export async function listarGuardadas(lim = 200): Promise<OfertaLista[]> {
+  const res = await db().from('v_ofertas_web').select(COLUMNAS_LISTA)
+    .not('guardada_en', 'is', null)
+    .order('guardada_en', { ascending: false }).order('id', { ascending: false }).range(0, lim - 1);
+  return ok<OfertaLista[]>(res as never) ?? [];
 }
 
 export async function obtenerOferta(id: number): Promise<Oferta | null> {
