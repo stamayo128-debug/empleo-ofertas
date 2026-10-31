@@ -24,8 +24,7 @@ export default async function GuardadasPage() {
       </div>
 
       {filas.length === 0 ? (
-        <EmptyState>
-          <Bookmark size={28} aria-hidden className="mx-auto mb-2 text-muted" />
+        <EmptyState icono={<Bookmark size={26} />}>
           Aquí aparecen las ofertas que guardes con el marcador. Guarda las que te interesen para decidir después.
         </EmptyState>
       ) : (

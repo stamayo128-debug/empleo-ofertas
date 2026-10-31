@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ExternalLink } from 'lucide-react';
+import { ArrowLeft, ExternalLink } from 'lucide-react';
 import EmptyState from '@/components/EmptyState';
 import FiltrosDescartes from '@/components/FiltrosDescartes';
 import RecuperarBoton from '@/components/RecuperarBoton';
@@ -47,6 +47,9 @@ export default async function DescartesPage({ searchParams }: { searchParams: Pr
 
   return (
     <div className="max-w-[900px] space-y-4">
+      <Link href="/ajustes" className="inline-flex min-h-11 items-center gap-2 text-[15px] font-medium text-accent md:hidden">
+        <ArrowLeft size={18} aria-hidden /> Ajustes
+      </Link>
       <h1 className="text-xl font-semibold">Descartes</h1>
       {resumen.length > 0 && (
         <p className="meta">
@@ -106,7 +109,7 @@ export default async function DescartesPage({ searchParams }: { searchParams: Pr
               const url = urlSegura(d.url);
               const titulo = [d.puesto || 'Sin título', d.empresa, d.lugar].filter(Boolean).join(' · ');
               return (
-                <li key={d.id} className="card p-4">
+                <li key={d.id} className="card p-5">
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
                     <span className="num text-muted">{fmtDia(d.primera_vez)} {fmtHora(d.primera_vez)}</span>
                     <span className="badge border-border text-fg">{MOTIVO_ETIQUETA[d.motivo] ?? d.motivo}</span>
