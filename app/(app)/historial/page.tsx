@@ -115,7 +115,6 @@ async function DetalleBusqueda({ id }: { id: number }) {
           <Cifra valor={e.total_descartadas} etiqueta="descartadas" />
           <Cifra valor={e.total_ya_conocidas} etiqueta="ya conocidas" />
         </div>
-        {e.resumen && <p className="mt-4 whitespace-pre-wrap text-[15px]">{e.resumen}</p>}
         {fallos.length > 0 && (
           <p role="note" className="mt-3 rounded-tile bg-surface-2 px-3 py-2 text-sm font-medium text-ambar">
             {fallos.length === 1 ? `${fallos[0]} falló en esta búsqueda.` : `Fallaron ${fallos.join(', ')}.`}
@@ -130,6 +129,15 @@ async function DetalleBusqueda({ id }: { id: number }) {
         <ul className="space-y-3">
           {portales.map((p) => <li key={p.plataforma}><PortalCard p={p} /></li>)}
         </ul>
+      )}
+
+      {e.resumen && (
+        <details className="card group">
+          <summary className="flex min-h-14 cursor-pointer list-none items-center px-5 text-[15px] font-semibold [&::-webkit-details-marker]:hidden">
+            Resumen del agente
+          </summary>
+          <p className="max-h-80 overflow-auto whitespace-pre-wrap border-t border-border p-5 text-sm text-muted">{e.resumen}</p>
+        </details>
       )}
 
       <details className="card group">
