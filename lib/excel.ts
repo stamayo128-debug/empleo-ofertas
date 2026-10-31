@@ -155,6 +155,7 @@ export async function construirExcel(): Promise<ArrayBuffer> {
     { cabecera: 'Origen', ancho: 12 },
     { cabecera: 'Otras fuentes', ancho: 30 }, { cabecera: 'Por verificar', ancho: 40 },
     { cabecera: 'Motivo descarte (tú)', ancho: 40 }, { cabecera: 'CV adaptado (Drive)', ancho: 36 },
+    { cabecera: 'Guardada', ancho: 11 },
   ];
   const filasOf = ofertas.map((o): ExcelJS.CellValue[] => {
     const lugar = [s(o.lugar), MODALIDAD_ETIQUETA[o.modalidad] ?? ''].filter(Boolean).join(' · ');
@@ -175,7 +176,7 @@ export async function construirExcel(): Promise<ArrayBuffer> {
       s(o.estado), dia(o.fecha_envio), dia(o.proximo_seguimiento), resp, s(o.notas),
       s(ZONA_ETIQUETA[o.zona] ?? o.zona), s(MODALIDAD_ETIQUETA[o.modalidad] || 'Sin especificar'),
       instante(o.ultima_vez_vista), enlace(o.carpeta_drive_url), s(o.origen),
-      otrasFuentes(o), porVerificar(o), motivoUsuario(o), enlace(o.cv_doc_url),
+      otrasFuentes(o), porVerificar(o), motivoUsuario(o), enlace(o.cv_doc_url), sino(!!o.guardada_en),
     ];
   });
   const wsOf = hoja(libro, 'Ofertas', cols, filasOf);
