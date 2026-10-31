@@ -41,6 +41,18 @@ export function restarDias(dia: string, n: number): string {
   return new Date(Date.UTC(y, m - 1, d - n)).toISOString().slice(0, 10);
 }
 
+const fDiaLargo = new Intl.DateTimeFormat('es-ES', { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long' });
+
+/** «Hoy», «Ayer» o «lunes 27 de octubre» para un día AAAA-MM-DD (en hora de Madrid). */
+export function etiquetaDia(dia: string): string {
+  const hoy = hoyMadrid();
+  if (dia === hoy) return 'Hoy';
+  if (dia === restarDias(hoy, 1)) return 'Ayer';
+  const [y, m, d] = dia.split('-').map(Number);
+  const t = fDiaLargo.format(new Date(Date.UTC(y, m - 1, d)));
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
+
 /** dd/mm/aaaa de una fecha-sola (AAAA-MM-DD) o de un instante. */
 export function fmtDia(v?: string | null): string {
   if (!v) return '';
