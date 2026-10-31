@@ -7,7 +7,7 @@ export default function Seccion({
 }: { id: string; titulo: string; abierta?: boolean; resumen?: string; children?: React.ReactNode }) {
   if (Children.toArray(children).length === 0) return null;
   return (
-    <details open={abierta} className="group rounded-[10px] border border-border">
+    <details open={abierta} className="group rounded-tile border border-border">
       <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 px-3 py-2 [&::-webkit-details-marker]:hidden">
         <h3 id={`s-${id}`} className="text-base font-semibold">{titulo}</h3>
         {resumen && <span className="meta">{resumen}</span>}

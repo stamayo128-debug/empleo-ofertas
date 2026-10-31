@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { FileSpreadsheet } from 'lucide-react';
 import { useToast } from './Toast';
 
-export default function ExcelBoton() {
+export default function ExcelBoton({ fila = false }: { fila?: boolean }) {
   const [generando, setGenerando] = useState(false);
   const toast = useToast();
 
@@ -30,6 +30,14 @@ export default function ExcelBoton() {
     }
   }
 
+  if (fila) {
+    return (
+      <button type="button" onClick={descargar} disabled={generando} className="flex min-h-14 w-full items-center gap-3 px-5 text-left text-[15px] font-medium disabled:opacity-60">
+        <FileSpreadsheet size={20} aria-hidden className="text-accent" />
+        {generando ? 'Generando Excel…' : 'Descargar Excel'}
+      </button>
+    );
+  }
   return (
     <button type="button" className="btn" onClick={descargar} disabled={generando} aria-label={generando ? 'Generando Excel' : 'Descargar Excel'}>
       <FileSpreadsheet size={18} aria-hidden />

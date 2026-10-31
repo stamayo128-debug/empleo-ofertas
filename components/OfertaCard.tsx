@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { MODALIDAD_ETIQUETA, MOTIVO_USUARIO_ETIQUETA, type TabId } from '@/lib/constantes';
 import { fmtCorta, publicadaTexto, txt, urlSegura } from '@/lib/format';
-import type { Oferta } from '@/lib/types';
+import type { OfertaLista } from '@/lib/types';
 import { EncajeBadge } from './Badge';
 import AbrirOfertaLink from './AbrirOfertaLink';
 import CasillaLote from './CasillaLote';
@@ -11,7 +11,7 @@ import { VerificadaBoton } from './VerificarAcciones';
 /** Tarjeta compacta: línea de estado, puesto, empresa·lugar, resumen, meta y acciones. */
 export default function OfertaCard({
   o, href, seleccionada, vencida, tab,
-}: { o: Oferta; href: string; seleccionada: boolean; vencida: boolean; tab: TabId }) {
+}: { o: OfertaLista; href: string; seleccionada: boolean; vencida: boolean; tab: TabId }) {
   const url = urlSegura(o.url_principal) ?? urlSegura(o.url);
   const modalidad = MODALIDAD_ETIQUETA[o.modalidad];
   const lugar = [o.empresa, o.municipio ?? o.lugar, modalidad].filter(Boolean).join(' · ');
@@ -32,6 +32,8 @@ export default function OfertaCard({
 
   const estados: React.ReactNode[] = [];
   if (o.sin_revisar) estados.push(<span key="n" className="font-medium text-accent"><span aria-hidden>● </span>Nueva</span>);
+  const recuperada = o.origen === 'recuperada';
+  if (recuperada) estados.push(<span key="r" className="font-medium text-ambar"><span aria-hidden>↺ </span>Recuperada</span>);
   if (vencida) estados.push(<span key="v" className="font-medium text-ambar">Seguimiento vencido el {fmtCorta(o.proximo_seguimiento)}</span>);
   if (o.por_verificar) estados.push(<span key="p" className="font-medium text-ambar">Por verificar</span>);
   if (o.estado === 'Descartada') {
@@ -43,7 +45,7 @@ export default function OfertaCard({
 
   return (
     <article
-      className={`card relative p-4 ${seleccionada ? 'border-accent ring-1 ring-accent' : ''} ${vencida ? 'border-ambar' : ''}`}
+      className={`card relative p-4 ${seleccionada ? 'ring-2 ring-accent' : vencida ? 'ring-2 ring-ambar' : recuperada ? 'ring-1 ring-ambar/50' : ''}`}
     >
       <div className="flex items-start justify-between gap-3">
         <p className="min-h-5 min-w-0 flex-1 text-sm">

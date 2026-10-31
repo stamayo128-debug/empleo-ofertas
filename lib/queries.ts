@@ -1,12 +1,21 @@
 import 'server-only';
 import { cache } from 'react';
+import { unstable_cache } from 'next/cache';
 import { db, fetchAll, ok } from './db';
 import { ZONAS_FILTRO, type TabId } from './constantes';
 import type { Filtros } from './filtros';
-import type { Busqueda, Criterios, CuadreBusqueda, Descarte, DescartadaPorTi, Ejecucion, Evento, NotaAgente, Oferta } from './types';
+import type { Busqueda, Criterios, CuadreBusqueda, Descarte, DescartadaPorTi, Ejecucion, Evento, NotaAgente, Oferta, OfertaLista } from './types';
 import { hoyMadrid, inicioDiaMadrid, restarDias } from './format';
 
 const SIN_DESCARTADAS = 'Descartada';
+
+/** Columnas de v_ofertas_web que necesita la lista (ver OfertaLista en types.ts). */
+const COLUMNAS_LISTA = [
+  'id', 'codigo', 'puesto', 'empresa', 'lugar', 'municipio', 'modalidad', 'plataforma', 'plataforma_principal',
+  'url', 'url_principal', 'fuentes', 'fecha_publicacion', 'fecha_publicacion_estimada', 'salario', 'tiene_salario',
+  'descripcion_clara', 'calidad_datos', 'encaje', 'estado', 'sin_revisar', 'por_verificar', 'origen',
+  'respuesta_tipo', 'proximo_seguimiento', 'fecha_envio', 'descarte_usuario_motivo',
+].join(',');
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function baseTab(q: any, tab: TabId, incluirDescartadas: boolean) {
@@ -46,6 +55,11 @@ function aplicarFiltros(q: any, f: Filtros) {
   else if (f.exp === 'no_indica') q = q.eq('tramo_experiencia', 'no_indica');
   if (f.zona === 'otra') q = q.in('zona', ['otra', 'euskadi_otra']);
   else if (ZONAS_FILTRO.some((z) => z.valor === f.zona)) q = q.eq('zona', f.zona);
+  if (f.dia) {
+    const hoy = hoyMadrid();
+    q = q.gte('fecha_deteccion', f.dia === 'hoy' ? hoy : restarDias(hoy, Number(f.dia) - 1));
+  }
+  if (f.origen === 'recuperada') q = q.eq('origen', 'recuperada');
   const t = limpiarBusqueda(f.q);
   if (t) q = q.or(`puesto.ilike.*${t}*,empresa.ilike.*${t}*,lugar.ilike.*${t}*,municipio.ilike.*${t}*`);
   return q;
@@ -65,8 +79,18 @@ export async function contadoresTabs(): Promise<Record<TabId, number>> {
   return out;
 }
 
-export async function listarOfertas(f: Filtros): Promise<{ filas: Oferta[]; total: number }> {
-  let q = db().from('v_ofertas_web').select('*', { count: 'exact' });
+/** Ofertas pendientes de enviar (contador del botón central de la barra inferior). */
+export const contarPorEnviar = cache(async (): Promise<number> => {
+  const res = (await baseTab(db().from('v_ofertas_web').select('id', { count: 'exact', head: true }), 'porenviar', false)) as unknown as {
+    count: number | null; error: { message: string } | null;
+  };
+  if (res.error) throw new Error('Error de base de datos');
+  return res.count ?? 0;
+});
+
+export async function listarOfertas(f: Filtros): Promise<{ filas: OfertaLista[]; total: number }> {
+  // Solo las columnas que usan la tarjeta y sus botones; el detalle pide la fila completa aparte.
+  let q = db().from('v_ofertas_web').select(COLUMNAS_LISTA, { count: 'exact' });
   q = aplicarFiltros(baseTab(q, f.tab, f.descartadas), f);
 
   const porPublicacion = f.orden === 'publicacion';
@@ -86,16 +110,23 @@ export async function listarOfertas(f: Filtros): Promise<{ filas: Oferta[]; tota
   }
   q = q.order('id', { ascending: false }).range(0, f.lim - 1);
 
-  const res = (await q) as unknown as { data: Oferta[] | null; count: number | null; error: { message: string } | null };
-  const filas = ok<Oferta[]>(res as never) ?? [];
+  const res = (await q) as unknown as { data: OfertaLista[] | null; count: number | null; error: { message: string } | null };
+  const filas = ok<OfertaLista[]>(res as never) ?? [];
   return { filas, total: res.count ?? filas.length };
 }
 
-export const plataformasDisponibles = cache(async (): Promise<string[]> => {
-  // Equivale a "select distinct plataforma": PostgREST no tiene DISTINCT, se deduplica aquí.
-  const filas = await fetchAll<{ plataforma: string }>('ofertas', 'plataforma', 'id');
+// Equivale a "select distinct plataforma": PostgREST no tiene DISTINCT, se deduplica aquí.
+// Leer toda la tabla en cada clic era lo más caro de la pantalla: se guarda 10 minutos.
+async function leerPlataformas(tabla: 'ofertas' | 'descartes'): Promise<string[]> {
+  const filas = await fetchAll<{ plataforma: string }>(tabla, 'plataforma', 'id');
   return [...new Set(filas.map((x) => x.plataforma).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es'));
-});
+}
+const plataformasOfertasCache = unstable_cache(() => leerPlataformas('ofertas'), ['plataformas-ofertas'], { revalidate: 600, tags: ['plataformas'] });
+const plataformasDescartesCache = unstable_cache(() => leerPlataformas('descartes'), ['plataformas-descartes'], { revalidate: 600, tags: ['plataformas'] });
+
+export async function plataformasDisponibles(): Promise<string[]> {
+  try { return await plataformasOfertasCache(); } catch { return leerPlataformas('ofertas'); }
+}
 
 export async function obtenerOferta(id: number): Promise<Oferta | null> {
   const res = await db().from('v_ofertas_web').select('*').eq('id', id).maybeSingle();
@@ -156,8 +187,7 @@ export async function resumenMotivos30d(): Promise<{ motivo: string; n_30d: numb
 }
 
 export async function plataformasDescartes(): Promise<string[]> {
-  const filas = await fetchAll<{ plataforma: string }>('descartes', 'plataforma', 'id');
-  return [...new Set(filas.map((x) => x.plataforma).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es'));
+  try { return await plataformasDescartesCache(); } catch { return leerPlataformas('descartes'); }
 }
 
 export async function descartesDeHoy(): Promise<number> {

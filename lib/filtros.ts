@@ -1,4 +1,4 @@
-import { ENCAJES, ESTADOS, EXPERIENCIA_FILTRO, MODALIDAD_FILTRO, ORDENES, SALARIO_FILTRO, TABS, ZONAS_FILTRO, type OrdenId, type TabId } from './constantes';
+import { DIA_FILTRO, ENCAJES, ESTADOS, EXPERIENCIA_FILTRO, MODALIDAD_FILTRO, ORDENES, SALARIO_FILTRO, TABS, ZONAS_FILTRO, type OrdenId, type TabId } from './constantes';
 
 export type SP = Record<string, string | string[] | undefined>;
 
@@ -11,6 +11,10 @@ export type Filtros = {
   mod: string;
   sal: string;
   exp: string;
+  /** Detectadas en los últimos N días ('hoy' | '7' | '30'). */
+  dia: string;
+  /** 'recuperada' = solo las recuperadas desde Descartes. */
+  origen: string;
   q: string;
   orden: OrdenId;
   descartadas: boolean;
@@ -30,13 +34,15 @@ export function parseFiltros(sp: SP): Filtros {
   const mod = MODALIDAD_FILTRO.some((m) => m.valor === uno(sp.mod)) ? uno(sp.mod) : '';
   const sal = SALARIO_FILTRO.some((m) => m.valor === uno(sp.sal)) ? uno(sp.sal) : '';
   const exp = EXPERIENCIA_FILTRO.some((m) => m.valor === uno(sp.exp)) ? uno(sp.exp) : '';
+  const dia = DIA_FILTRO.some((m) => m.valor === uno(sp.dia)) ? uno(sp.dia) : '';
+  const origen = uno(sp.origen) === 'recuperada' ? 'recuperada' : '';
   const orden = ORDENES.find((o) => o.id === uno(sp.orden))?.id ?? 'relevancia';
   const lim = Math.min(Math.max(parseInt(uno(sp.lim), 10) || 50, 50), 500);
   const sel = parseInt(uno(sp.sel), 10);
   return {
     tab,
     plat: varios(sp.plat).map((p) => p.slice(0, 60)).filter(Boolean).slice(0, 20),
-    estado, encaje, zona, mod, sal, exp,
+    estado, encaje, zona, mod, sal, exp, dia, origen,
     q: uno(sp.q).slice(0, 80),
     orden,
     descartadas: uno(sp.descartadas) === '1',
@@ -56,6 +62,8 @@ export function hrefOfertas(f: Partial<Filtros>, extra: { sel?: number | null; l
   if (f.mod) p.set('mod', f.mod);
   if (f.sal) p.set('sal', f.sal);
   if (f.exp) p.set('exp', f.exp);
+  if (f.dia) p.set('dia', f.dia);
+  if (f.origen) p.set('origen', f.origen);
   if (f.q) p.set('q', f.q);
   if (f.orden && f.orden !== 'relevancia') p.set('orden', f.orden);
   if (f.descartadas) p.set('descartadas', '1');
@@ -67,5 +75,5 @@ export function hrefOfertas(f: Partial<Filtros>, extra: { sel?: number | null; l
 
 export function filtrosActivos(f: Filtros): number {
   return f.plat.length + (f.estado ? 1 : 0) + (f.encaje ? 1 : 0) + (f.zona ? 1 : 0) +
-    (f.mod ? 1 : 0) + (f.sal ? 1 : 0) + (f.exp ? 1 : 0) + (f.q ? 1 : 0);
+    (f.mod ? 1 : 0) + (f.sal ? 1 : 0) + (f.exp ? 1 : 0) + (f.dia ? 1 : 0) + (f.origen ? 1 : 0) + (f.q ? 1 : 0);
 }

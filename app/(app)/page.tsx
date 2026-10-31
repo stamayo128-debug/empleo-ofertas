@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import ChipsRapidos from '@/components/ChipsRapidos';
 import DetallePanel from '@/components/DetallePanel';
 import EmptyState from '@/components/EmptyState';
 import FiltroBar from '@/components/FiltroBar';
@@ -59,7 +60,7 @@ export default async function OfertasPage({ searchParams }: { searchParams: Prom
   return (
     <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_480px] lg:items-start lg:gap-6">
       <div className={`max-w-[760px] space-y-4 ${hayDetalle ? 'hidden lg:block' : ''}`}>
-        <div role="tablist" aria-label="Vistas de ofertas" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+        <div role="tablist" aria-label="Vistas de ofertas" className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1">
           {TABS.map((t) => {
             const activa = f.tab === t.id;
             return (
@@ -68,20 +69,20 @@ export default async function OfertasPage({ searchParams }: { searchParams: Prom
                 role="tab"
                 aria-selected={activa}
                 href={hrefOfertas({ ...f, tab: t.id })}
-                className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-[10px] border px-4 text-[15px] font-medium ${activa ? 'border-accent bg-accent-soft text-accent' : 'border-border bg-surface text-fg'}`}
+                className={`chip min-h-11 gap-2 text-[15px] ${activa ? 'chip-on' : ''}`}
               >
-                {t.etiqueta} <span className="num text-muted">{contadores[t.id]}</span>
+                {t.etiqueta} <span className={`num ${activa ? 'opacity-80' : 'text-muted'}`}>{contadores[t.id]}</span>
               </Link>
             );
           })}
         </div>
 
         <FiltroBar filtros={f} plataformas={plataformas} />
+        <ChipsRapidos f={f} plataformas={plataformas} />
 
         {f.tab === 'todas' && (
           <Link
-            role="switch"
-            aria-checked={f.descartadas}
+            aria-label={`Incluir descartadas: ${f.descartadas ? 'activado' : 'desactivado'}`}
             href={hrefOfertas({ ...f, descartadas: !f.descartadas })}
             className="inline-flex min-h-11 items-center gap-3 text-[15px]"
           >
@@ -113,7 +114,7 @@ export default async function OfertasPage({ searchParams }: { searchParams: Prom
       </div>
 
       {hayDetalle && oferta && (
-        <aside aria-label="Detalle de la oferta" className="lg:sticky lg:top-28 lg:max-h-[calc(100dvh-8rem)] lg:overflow-y-auto">
+        <aside aria-label="Detalle de la oferta" className="lg:sticky lg:top-[84px] lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto">
           <DetallePanel o={oferta} eventos={eventos} cerrarHref={cerrarHref} />
         </aside>
       )}

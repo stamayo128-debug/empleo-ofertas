@@ -36,6 +36,12 @@ export const EXPERIENCIA_FILTRO = [
   { valor: 'no_indica', etiqueta: 'No lo indica' },
 ] as const;
 
+export const DIA_FILTRO = [
+  { valor: 'hoy', etiqueta: 'Hoy' },
+  { valor: '7', etiqueta: '7 días' },
+  { valor: '30', etiqueta: '30 días' },
+] as const;
+
 export const SALARIO_FILTRO = [
   { valor: 'si', etiqueta: 'Con salario' },
   { valor: 'no', etiqueta: 'Sin salario' },

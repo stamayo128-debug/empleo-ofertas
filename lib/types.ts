@@ -99,6 +99,15 @@ export type Oferta = {
   descartada_en: string | null;
 };
 
+/** Subconjunto de columnas que carga la lista de ofertas (la tarjeta y sus botones). */
+export type OfertaLista = Pick<
+  Oferta,
+  | 'id' | 'codigo' | 'puesto' | 'empresa' | 'lugar' | 'municipio' | 'modalidad' | 'plataforma' | 'plataforma_principal'
+  | 'url' | 'url_principal' | 'fuentes' | 'fecha_publicacion' | 'fecha_publicacion_estimada' | 'salario' | 'tiene_salario'
+  | 'descripcion_clara' | 'calidad_datos' | 'encaje' | 'estado' | 'sin_revisar' | 'por_verificar' | 'origen'
+  | 'respuesta_tipo' | 'proximo_seguimiento' | 'fecha_envio' | 'descarte_usuario_motivo'
+>;
+
 /** Fila de "Descartadas por ti" (subconjunto de v_ofertas_web). */
 export type DescartadaPorTi = Pick<
   Oferta,
