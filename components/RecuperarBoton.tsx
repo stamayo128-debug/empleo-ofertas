@@ -13,7 +13,7 @@ export default function RecuperarBoton({ id, sugerida = false }: { id: number; s
   // Tras recuperar, la fila cambia al instante a "Recuperada" con enlace a la oferta.
   if (ofertaId) {
     return (
-      <Link href={`/?tab=todas&origen=recuperada&sel=${ofertaId}`} className="inline-flex min-h-11 items-center text-[15px] font-medium text-accent underline-offset-2 hover:underline">
+      <Link href={`/?sel=${ofertaId}`} className="inline-flex min-h-11 items-center text-[15px] font-medium text-accent underline-offset-2 hover:underline">
         ↺ Recuperada: ver oferta
       </Link>
     );

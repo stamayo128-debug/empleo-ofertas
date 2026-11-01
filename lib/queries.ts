@@ -4,6 +4,7 @@ import { db, fetchAll, ok } from './db';
 import type { Filtros } from './filtros';
 import type { Busqueda, Criterios, CuadreBusqueda, Descarte, DescartadaPorTi, Ejecucion, Evento, NotaAgente, Oferta, OfertaLista } from './types';
 import { hoyMadrid, inicioDiaMadrid, restarDias } from './format';
+import { categoriaDe, type Descartada, type FiltroDescartadas } from './descartadas';
 import { grupoPortal } from './portales';
 
 const SIN_DESCARTADAS = 'Descartada';
@@ -80,48 +81,45 @@ export const ultimaEjecucion = cache(async (): Promise<Ejecucion | null> => {
   return filas[0] ?? null;
 });
 
-// ---------- Descartes ----------
-export type FiltroDescartes = { motivo: string; plat: string; rango: 'hoy' | '7' | '30'; lim: number };
+// ---------- Descartadas ----------
+/** Descartes del agente y ofertas descartadas por ti, en una sola lista (lo más reciente primero). */
+export async function listarDescartadas(f: FiltroDescartadas): Promise<{ filas: Descartada[]; total: number }> {
+  const [ag, us] = await Promise.all([
+    db().from('descartes')
+      .select('id,plataforma,puesto,empresa,lugar,url,motivo,detalle,primera_vez,recuperada_como')
+      .is('fusionado_en', null) // los duplicados ya absorbidos como fuente de otra oferta no se listan
+      .order('primera_vez', { ascending: false }).range(0, 499),
+    db().from('v_ofertas_web')
+      .select('id,puesto,empresa,lugar,municipio,plataforma_principal,url_principal,url,descarte_usuario_motivo,descarte_usuario_detalle,descartada_en,fecha_deteccion')
+      .eq('estado', SIN_DESCARTADAS)
+      .order('descartada_en', { ascending: false, nullsFirst: false }).range(0, 199),
+  ]);
+  const delAgente = ok<Record<string, never>[]>(ag as never) as unknown as {
+    id: number; plataforma: string; puesto: string | null; empresa: string | null; lugar: string | null; url: string | null;
+    motivo: string; detalle: string | null; primera_vez: string; recuperada_como: number | null;
+  }[];
+  const tuyas = ok<Record<string, never>[]>(us as never) as unknown as {
+    id: number; puesto: string; empresa: string; lugar: string | null; municipio: string | null; plataforma_principal: string;
+    url_principal: string | null; url: string | null; descarte_usuario_motivo: string | null; descarte_usuario_detalle: string | null;
+    descartada_en: string | null; fecha_deteccion: string;
+  }[];
 
-export async function listarDescartes(f: FiltroDescartes): Promise<{ filas: Descarte[]; total: number }> {
-  const hoy = hoyMadrid();
-  const desde = f.rango === 'hoy' ? inicioDiaMadrid(hoy) : inicioDiaMadrid(restarDias(hoy, f.rango === '7' ? 6 : 29));
-  // fusionado_en: los descartes 'duplicada' ya absorbidos como fuente de otra oferta no se listan.
-  let q = db().from('descartes').select('*', { count: 'exact' }).gte('primera_vez', desde).is('fusionado_en', null);
-  if (f.motivo) q = q.eq('motivo', f.motivo);
-  if (f.plat) q = q.eq('plataforma', f.plat);
-  q = q.order('primera_vez', { ascending: false }).order('id', { ascending: false }).range(0, f.lim - 1);
-  const res = (await q) as unknown as { data: Descarte[] | null; count: number | null; error: { message: string } | null };
-  const filas = ok<Descarte[]>(res as never) ?? [];
-  return { filas, total: res.count ?? filas.length };
-}
-
-/** Ofertas descartadas a mano desde la web (con motivo y nota), las más recientes primero. */
-export async function descartadasPorTi(lim: number): Promise<{ filas: DescartadaPorTi[]; total: number }> {
-  const res = (await db().from('v_ofertas_web')
-    .select('id,codigo,puesto,empresa,descarte_usuario_motivo,descarte_usuario_detalle,descartada_en', { count: 'exact' })
-    .not('descarte_usuario_motivo', 'is', null)
-    .order('descartada_en', { ascending: false, nullsFirst: false })
-    .order('id', { ascending: false })
-    .range(0, lim - 1)) as unknown as { data: DescartadaPorTi[] | null; count: number | null; error: { message: string } | null };
-  const filas = ok<DescartadaPorTi[]>(res as never) ?? [];
-  return { filas, total: res.count ?? filas.length };
-}
-
-export async function resumenMotivos30d(): Promise<{ motivo: string; n_30d: number }[]> {
-  const res = await db().from('v_descartes_motivos').select('motivo,n_30d');
-  return (ok<{ motivo: string; n_30d: number }[]>(res as never) ?? []).map((x) => ({ motivo: x.motivo, n_30d: Number(x.n_30d) }));
-}
-
-export async function plataformasDescartes(): Promise<string[]> {
-  const filas = await fetchAll<{ plataforma: string }>('descartes', 'plataforma', 'id');
-  return [...new Set(filas.map((x) => x.plataforma).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es'));
-}
-
-export async function descartesDeHoy(): Promise<number> {
-  const res = await db().from('descartes').select('id', { count: 'exact', head: true })
-    .gte('primera_vez', inicioDiaMadrid(hoyMadrid()));
-  return (res as unknown as { count: number | null }).count ?? 0;
+  const todas: Descartada[] = [
+    ...(delAgente ?? []).map((d): Descartada => ({
+      clave: `a-${d.id}`, origen: 'agente', id: d.id, fecha: d.primera_vez, portal: d.plataforma, grupo: grupoPortal(d.plataforma),
+      categoria: categoriaDe(d.motivo, 'agente'), puesto: d.puesto || 'Sin título', empresa: d.empresa || 'Sin empresa', lugar: d.lugar,
+      razon: d.detalle, url: d.url, recuperadaComo: d.recuperada_como,
+    })),
+    ...(tuyas ?? []).map((o): Descartada => ({
+      clave: `u-${o.id}`, origen: 'tu', id: o.id, fecha: o.descartada_en ?? o.fecha_deteccion, portal: o.plataforma_principal, grupo: grupoPortal(o.plataforma_principal),
+      categoria: categoriaDe(o.descarte_usuario_motivo, 'tu'), puesto: o.puesto, empresa: o.empresa, lugar: o.municipio ?? o.lugar,
+      razon: o.descarte_usuario_detalle, url: o.url_principal ?? o.url, recuperadaComo: null,
+    })),
+  ];
+  const filtradas = todas
+    .filter((d) => (f.plat.length === 0 || f.plat.includes(d.grupo)) && (!f.cat || d.categoria === f.cat))
+    .sort((a, b) => (b.fecha ?? '').localeCompare(a.fecha ?? ''));
+  return { filas: filtradas.slice(0, f.lim), total: filtradas.length };
 }
 
 // ---------- Historial ----------
