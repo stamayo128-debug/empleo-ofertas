@@ -83,7 +83,7 @@ async function DetalleBusqueda({ id }: { id: number }) {
     const p = porPortal.get(b.plataforma) ?? {
       plataforma: b.plataforma, consultas: 0, resultados: 0, nuevas: 0, descartadas: 0, conocidas: 0, errores: [],
       hrefOfertas: hrefOfertas({ plat: [grupoPortal(b.plataforma)], dia: diaFiltro }),
-      hrefDescartes: `/descartadas?plat=${encodeURIComponent(b.plataforma)}&rango=${rango}`,
+      hrefDescartes: `/descartadas?plat=${grupoPortal(b.plataforma)}`,
     };
     p.consultas += 1;
     p.resultados += (scraper.get(b.id) ?? 0) > 0 ? scraper.get(b.id)! : b.resultados;
