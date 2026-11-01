@@ -33,14 +33,14 @@ export default function BusquedasSitio({ sitio, celdas }: { sitio: string; celda
     <ul className={`space-y-3 ${pendiente ? 'opacity-70' : ''}`} aria-busy={pendiente}>
       {celdas.map(({ tema, filas }) => {
         const on = activas[tema.clave];
-        const portales = [...new Set(filas.map((f) => f.plataforma))].join(' · ');
-        const dias = [...new Set(filas.map((f) => resumenDias(f.dias_semana)))].join(' / ');
+        const portales = filas.length ? [...new Set(filas.map((f) => f.plataforma))].join(' · ') : 'Se creará al activarla';
+        const dias = filas.length ? [...new Set(filas.map((f) => resumenDias(f.dias_semana)))].join(' / ') : '';
         return (
           <li key={tema.clave} className={`tile flex items-center gap-3 ${on ? '' : 'opacity-60'}`}>
             <div className="min-w-0 flex-1">
               <p className="text-[15px] font-semibold">{tema.nombre}</p>
               <p className="text-sm text-muted">{portales}</p>
-              <p className="text-sm text-muted">{dias}</p>
+              {dias && <p className="text-sm text-muted">{dias}</p>}
             </div>
             <input
               type="checkbox" role="switch" className="size-6 shrink-0 accent-[var(--accent)]" checked={on}
