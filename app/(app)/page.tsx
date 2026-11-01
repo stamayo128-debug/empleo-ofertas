@@ -4,7 +4,7 @@ import EmptyState from '@/components/EmptyState';
 import FiltrosOfertas from '@/components/FiltrosOfertas';
 import OfertaCard from '@/components/OfertaCard';
 import { filtrosActivos, hrefOfertas, parseFiltros, type SP } from '@/lib/filtros';
-import { eventosDeOferta, listarOfertas, obtenerOferta } from '@/lib/queries';
+import { listarOfertas, obtenerOferta } from '@/lib/queries';
 import { requireSession } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
@@ -12,10 +12,9 @@ export const dynamic = 'force-dynamic';
 export default async function OfertasPage({ searchParams }: { searchParams: Promise<SP> }) {
   await requireSession();
   const f = parseFiltros(await searchParams);
-  const [lista, oferta, eventos] = await Promise.all([
+  const [lista, oferta] = await Promise.all([
     listarOfertas(f),
     f.sel ? obtenerOferta(f.sel) : Promise.resolve(null),
-    f.sel ? eventosDeOferta(f.sel) : Promise.resolve([]),
   ]);
   const hayDetalle = !!(f.sel && oferta);
   const filtrado = filtrosActivos(f) > 0;
@@ -56,7 +55,7 @@ export default async function OfertasPage({ searchParams }: { searchParams: Prom
 
       {hayDetalle && oferta && (
         <aside aria-label="Detalle de la oferta" className="lg:sticky lg:top-6 lg:max-h-[calc(100dvh-3rem)] lg:overflow-y-auto">
-          <DetallePanel o={oferta} eventos={eventos} cerrarHref={hrefOfertas(f, { lim: f.lim })} />
+          <DetallePanel o={oferta} cerrarHref={hrefOfertas(f, { lim: f.lim })} />
         </aside>
       )}
     </div>
