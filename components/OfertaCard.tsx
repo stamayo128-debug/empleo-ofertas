@@ -36,11 +36,11 @@ export default function OfertaCard({ o, href, seleccionada = false }: { o: Ofert
         <span className="relative z-10"><BotonGuardar id={o.id} guardada={!!o.guardada_en} /></span>
       </div>
 
-      <h3 className="mt-3 text-[17px] font-semibold leading-snug">
+      <h2 className="mt-3 text-[17px] font-semibold leading-snug">
         <Link href={href} scroll={false} aria-current={seleccionada ? 'true' : undefined} className="after:absolute after:inset-0 after:rounded-card after:content-['']">
           {o.puesto}
         </Link>
-      </h3>
+      </h2>
       {salario && <p className="mt-1 text-[15px] font-medium">{salario.length > 32 ? `${salario.slice(0, 31)}…` : salario}</p>}
 
       {etiquetas.length > 0 && (
