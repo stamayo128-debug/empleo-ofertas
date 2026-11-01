@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from './db';
 import { ENCAJES, ESTADOS, MOTIVOS_DESCARTE_USUARIO, RESPUESTAS } from './constantes';
+import { juntarPerfil, MAX_PERFIL } from './perfil';
 import { obtenerCriterios } from './queries';
 import { requireSession } from './session';
 import { enZonaPreferente } from './ubicacion';
@@ -112,7 +113,7 @@ export async function anadirUbicacion(nombre: unknown, radio: unknown): Promise<
     console.error('[anadirUbicacion]', res.error.code ?? '');
     return { ok: false, error: 'No se pudo añadir' };
   }
-  revalidatePath('/ajustes');
+  revalidatePath('/ajustes', 'layout');
   return { ok: true };
 }
 
@@ -126,7 +127,7 @@ export async function cambiarUbicacion(idEntrada: unknown, cambios: unknown): Pr
     console.error('[cambiarUbicacion]', res.error?.code ?? 'sin filas');
     return { ok: false, error: 'No se pudo guardar' };
   }
-  revalidatePath('/ajustes');
+  revalidatePath('/ajustes', 'layout');
   return { ok: true };
 }
 
@@ -139,7 +140,7 @@ export async function quitarUbicacion(idEntrada: unknown): Promise<Resultado> {
     console.error('[quitarUbicacion]', res.error.code ?? '');
     return { ok: false, error: 'No se pudo quitar' };
   }
-  revalidatePath('/ajustes');
+  revalidatePath('/ajustes', 'layout');
   return { ok: true };
 }
 
@@ -153,7 +154,7 @@ export async function cambiarRemoto(valor: unknown): Promise<Resultado> {
     console.error('[cambiarRemoto]', res.error?.code ?? 'sin filas');
     return { ok: false, error: 'No se pudo guardar' };
   }
-  revalidatePath('/ajustes');
+  revalidatePath('/ajustes', 'layout');
   return { ok: true };
 }
 
@@ -167,7 +168,25 @@ export async function guardarPuestos(datos: unknown): Promise<Resultado> {
     console.error('[guardarPuestos]', res.error?.code ?? 'sin filas');
     return { ok: false, error: 'No se pudo guardar' };
   }
-  revalidatePath('/ajustes');
+  revalidatePath('/ajustes', 'layout');
+  revalidatePath('/criterios');
+  return { ok: true };
+}
+
+/** El perfil, por apartados. Se junta en un solo texto y solo se toca ese campo de los criterios. */
+export async function guardarPerfil(datos: unknown): Promise<Resultado> {
+  await requireSession();
+  const parte = z.string().max(MAX_PERFIL);
+  const p = z.strictObject({ quien: parte, experiencia: parte, se: parte, no: parte, busco: parte }).safeParse(datos);
+  if (!p.success) return { ok: false, error: 'Datos no válidos' };
+  const texto = juntarPerfil(p.data);
+  if (texto.length > MAX_PERFIL) return { ok: false, error: `El perfil no puede pasar de ${MAX_PERFIL} caracteres (ahora tiene ${texto.length})` };
+  const res = await db().from('criterios_busqueda').update({ perfil_candidato: texto === '' ? null : texto }).eq('activo', true).select('id');
+  if (res.error || !res.data || res.data.length === 0) {
+    console.error('[guardarPerfil]', res.error?.code ?? 'sin filas');
+    return { ok: false, error: 'No se pudo guardar' };
+  }
+  revalidatePath('/ajustes', 'layout');
   revalidatePath('/criterios');
   return { ok: true };
 }

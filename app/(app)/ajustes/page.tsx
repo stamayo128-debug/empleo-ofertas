@@ -1,42 +1,37 @@
 import Link from 'next/link';
 import { ChevronRight, LogOut, SlidersHorizontal } from 'lucide-react';
 import { cerrarSesion } from '@/app/login/actions';
-import EmptyState from '@/components/EmptyState';
+import AjustesMenu from '@/components/AjustesMenu';
 import ExcelBoton from '@/components/ExcelBoton';
-import PuestosForm from '@/components/PuestosForm';
-import UbicacionesEditor from '@/components/UbicacionesEditor';
 import { listarUbicaciones, obtenerCriterios } from '@/lib/queries';
 import { requireSession } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 
+/** Menú de Ajustes: cada apartado es una tarjeta que abre su propia pantalla. */
 export default async function AjustesPage() {
   await requireSession();
-  const [sitios, criterios] = await Promise.all([listarUbicaciones(), obtenerCriterios()]);
+  const [sitios, criterios] = await Promise.all([
+    listarUbicaciones().catch(() => []),
+    obtenerCriterios().catch(() => null),
+  ]);
+
+  const activos = sitios.filter((s) => s.activa);
+  const resumenSitios = [...activos.map((s) => `${s.nombre} ${s.radio_km} km`), ...(criterios?.aceptar_remoto_espana ? ['teletrabajo'] : [])].join(' · ');
+  const puestos = (criterios?.puestos_objetivo.length ?? 0) + (criterios?.puestos_adyacentes.length ?? 0);
+  const resumenPerfil = criterios?.perfil_candidato?.trim() ? `${criterios.perfil_candidato.length} de 3000 caracteres` : 'Aún sin rellenar';
+
+  const apartados = [
+    { href: '/ajustes/donde', titulo: 'Dónde busco', resumen: resumenSitios || 'Sin sitios' },
+    { href: '/ajustes/perfil', titulo: 'Mi perfil', resumen: resumenPerfil },
+    { href: '/ajustes/puestos', titulo: 'Qué puestos busco', resumen: puestos === 1 ? '1 puesto de ejemplo' : `${puestos} puestos de ejemplo` },
+  ];
 
   return (
     <div className="max-w-[560px] space-y-5">
       <h1 className="text-2xl font-semibold">Ajustes</h1>
 
-      <section className="card space-y-4 p-5" aria-labelledby="a-donde">
-        <div>
-          <h2 id="a-donde" className="text-[17px] font-semibold">Dónde busco</h2>
-          <p className="meta">Es tu referencia de dónde se busca. De momento el agente sigue con sus consultas actuales (Madrid y Bizkaia): añadir un sitio aquí no hace que busque allí por sí solo.</p>
-        </div>
-        <UbicacionesEditor sitios={sitios} remoto={!!criterios?.aceptar_remoto_espana} />
-      </section>
-
-      <section className="card space-y-4 p-5" aria-labelledby="a-puestos">
-        <div>
-          <h2 id="a-puestos" className="text-[17px] font-semibold">Qué puestos busco</h2>
-          <p className="meta">Cada puesto es una fila: escribe encima para cambiarlo.</p>
-        </div>
-        {criterios ? (
-          <PuestosForm objetivo={criterios.puestos_objetivo ?? []} adyacentes={criterios.puestos_adyacentes ?? []} />
-        ) : (
-          <EmptyState>No hay criterios de búsqueda activos.</EmptyState>
-        )}
-      </section>
+      <AjustesMenu apartados={apartados} />
 
       <ul className="card divide-y divide-border overflow-hidden">
         <li><ExcelBoton fila /></li>
