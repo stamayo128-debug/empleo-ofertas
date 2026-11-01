@@ -108,6 +108,7 @@ export type OfertaLista = Pick<
   | 'url' | 'url_principal' | 'fuentes' | 'fecha_publicacion' | 'fecha_publicacion_estimada' | 'salario' | 'tiene_salario'
   | 'descripcion_clara' | 'calidad_datos' | 'encaje' | 'estado' | 'sin_revisar' | 'por_verificar' | 'origen'
   | 'respuesta_tipo' | 'proximo_seguimiento' | 'fecha_envio' | 'descarte_usuario_motivo' | 'guardada_en'
+  | 'tramo_experiencia' | 'fecha_deteccion'
 >;
 
 /** Fila de "Descartadas por ti" (subconjunto de v_ofertas_web). */

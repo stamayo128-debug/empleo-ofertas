@@ -5,6 +5,7 @@ import EmptyState from '@/components/EmptyState';
 import PortalCard, { type ResumenPortal } from '@/components/PortalCard';
 import { hrefOfertas, type SP } from '@/lib/filtros';
 import { diaMadrid, diasDesde, etiquetaDia, fmtDia, fmtHora } from '@/lib/format';
+import { grupoPortal } from '@/lib/portales';
 import { busquedasDe, cuadreDe, listarEjecuciones, obtenerEjecucion } from '@/lib/queries';
 import { requireSession } from '@/lib/session';
 import type { Ejecucion } from '@/lib/types';
@@ -81,7 +82,7 @@ async function DetalleBusqueda({ id }: { id: number }) {
   for (const b of busquedas) {
     const p = porPortal.get(b.plataforma) ?? {
       plataforma: b.plataforma, consultas: 0, resultados: 0, nuevas: 0, descartadas: 0, conocidas: 0, errores: [],
-      hrefOfertas: hrefOfertas({ tab: 'todas', plat: [b.plataforma], dia: diaFiltro }),
+      hrefOfertas: hrefOfertas({ plat: [grupoPortal(b.plataforma)], dia: diaFiltro }),
       hrefDescartes: `/descartadas?plat=${encodeURIComponent(b.plataforma)}&rango=${rango}`,
     };
     p.consultas += 1;
