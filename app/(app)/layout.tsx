@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { Briefcase } from 'lucide-react';
-import { RecordatorioEnvio } from '@/components/AbrirOfertaLink';
 import { NavEscritorio, NavMovil } from '@/components/NavLinks';
 import { ToastProvider } from '@/components/Toast';
 import { requireSession } from '@/lib/session';
@@ -22,7 +21,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </header>
       <main className="mx-auto max-w-[1240px] px-5 pb-[calc(7.5rem+env(safe-area-inset-bottom))] pt-6 md:pb-10">{children}</main>
       <NavMovil />
-      <RecordatorioEnvio />
     </ToastProvider>
   );
 }

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowUpRight, ChevronRight } from 'lucide-react';
+import { ArrowUpRight, Check, ChevronRight } from 'lucide-react';
 import { MODALIDAD_ETIQUETA } from '@/lib/constantes';
 import { haceDias, txt, urlSegura } from '@/lib/format';
 import { grupoPortal, nombrePortal } from '@/lib/portales';
@@ -22,6 +22,7 @@ export default function OfertaCard({ o, href, seleccionada = false }: { o: Ofert
   const etiquetas = [MODALIDAD_ETIQUETA[o.modalidad], EXPERIENCIA[o.tramo_experiencia]].filter(Boolean).slice(0, 2);
   const otros = new Set((o.fuentes ?? []).map((f) => grupoPortal(f.plataforma) === 'otros' ? f.plataforma : grupoPortal(f.plataforma)));
   const extra = Math.max(0, otros.size - 1);
+  const inscrita = ['Postulado', 'Entrevista', 'Rechazado'].includes(o.estado);
 
   return (
     <article className={`card relative p-4 ${seleccionada ? 'ring-2 ring-accent' : ''}`}>
@@ -30,6 +31,7 @@ export default function OfertaCard({ o, href, seleccionada = false }: { o: Ofert
         <div className="min-w-0 flex-1">
           <p className="truncate text-[15px] font-medium">{o.empresa}</p>
           {lugar && <p className="meta truncate">{lugar}</p>}
+          {inscrita && <p className="mt-0.5 inline-flex items-center gap-1 text-sm font-medium text-verde"><Check size={14} aria-hidden /> Inscrita</p>}
         </div>
         <span className="relative z-10"><BotonGuardar id={o.id} guardada={!!o.guardada_en} /></span>
       </div>

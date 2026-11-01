@@ -18,7 +18,7 @@ export default function EnviadaBoton({
     if (!['Postulado', 'Entrevista', 'Rechazado'].includes(optimista.estado)) return null;
     return (
       <p className={`inline-flex min-h-11 items-center gap-1 text-[15px] font-medium text-verde ${className}`}>
-        <Check size={16} aria-hidden /> Enviada{optimista.fecha ? ` el ${fmtCorta(optimista.fecha)}` : ''}
+        <Check size={16} aria-hidden /> Inscrita{optimista.fecha ? ` el ${fmtCorta(optimista.fecha)}` : ''}
       </p>
     );
   }
@@ -33,7 +33,7 @@ export default function EnviadaBoton({
         });
       }}
     >
-      <Check size={16} aria-hidden /> Marcar como enviada
+      <Check size={16} aria-hidden /> Me he inscrito
     </button>
   );
 }
