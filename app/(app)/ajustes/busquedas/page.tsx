@@ -19,9 +19,11 @@ export default async function BusquedasPage() {
 
   const secciones = orden.map((sitio) => {
     const delSitio = filas.filter((f) => f.sitio === sitio);
+    // En un sitio con presencia física se ofrecen todos los temas (los que aún no existen se crean al activarlos).
+    const fisico = sitio !== 'remoto' && sitio !== 'varios';
     const celdas = temas
       .map((tema) => ({ tema, filas: delSitio.filter((f) => f.tema === tema.clave) }))
-      .filter((c) => c.filas.length > 0);
+      .filter((c) => c.filas.length > 0 || (fisico && c.tema.clave !== 'empresas'));
     return { sitio, celdas };
   }).filter((s) => s.celdas.length > 0 || deLaLista.includes(s.sitio));
 
@@ -32,7 +34,7 @@ export default async function BusquedasPage() {
       </Link>
       <header>
         <h1 className="text-2xl font-semibold">Mis búsquedas</h1>
-        <p className="meta">Estas son las búsquedas que el agente lanza cada día en LinkedIn, Indeed, InfoJobs, Google Jobs y webs de empresas. Por cada sitio, activa o desactiva cada tema. Cada interruptor afecta a todos los portales de ese tema.</p>
+        <p className="meta">Estas son las búsquedas que el agente lanza cada día en LinkedIn, Indeed, InfoJobs, Google Jobs y webs de empresas. Por cada sitio, activa o desactiva cada tema: si el sitio aún no tiene ese tema, se crea al activarlo. Cada interruptor afecta a todos los portales de ese tema.</p>
       </header>
 
       {secciones.length === 0 ? (

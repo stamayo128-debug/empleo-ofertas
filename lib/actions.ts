@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from './db';
 import { ENCAJES, ESTADOS, MOTIVOS_DESCARTE_USUARIO, RESPUESTAS } from './constantes';
+import { apagarBusquedasDeSitio, actualizarRadioBusquedas, crearBusquedasDeTema } from './busquedas-servidor';
 import { juntarPerfil, MAX_PERFIL } from './perfil';
 import { obtenerCriterios } from './queries';
 import { requireSession } from './session';
@@ -122,11 +123,14 @@ export async function cambiarUbicacion(idEntrada: unknown, cambios: unknown): Pr
   const id = idSchema.safeParse(idEntrada);
   const c = z.strictObject({ radio_km: radioSitio.optional(), activa: z.boolean().optional() }).safeParse(cambios);
   if (!id.success || !c.success || Object.keys(c.data).length === 0) return { ok: false, error: 'Datos no válidos' };
-  const res = await db().from('ubicaciones').update(c.data).eq('id', id.data).select('id');
+  const res = await db().from('ubicaciones').update(c.data).eq('id', id.data).select('id,nombre,radio_km');
   if (res.error || !res.data || res.data.length === 0) {
     console.error('[cambiarUbicacion]', res.error?.code ?? 'sin filas');
     return { ok: false, error: 'No se pudo guardar' };
   }
+  const sitio = res.data[0] as { nombre: string; radio_km: number };
+  if (c.data.activa === false) await apagarBusquedasDeSitio(sitio.nombre); // sin sitio activo no se busca allí
+  if (c.data.radio_km !== undefined) await actualizarRadioBusquedas(sitio);
   revalidatePath('/ajustes', 'layout');
   return { ok: true };
 }
@@ -135,11 +139,14 @@ export async function quitarUbicacion(idEntrada: unknown): Promise<Resultado> {
   await requireSession();
   const id = idSchema.safeParse(idEntrada);
   if (!id.success) return { ok: false, error: 'Datos no válidos' };
+  const previo = await db().from('ubicaciones').select('nombre').eq('id', id.data).maybeSingle();
   const res = await db().from('ubicaciones').delete().eq('id', id.data);
   if (res.error) {
     console.error('[quitarUbicacion]', res.error.code ?? '');
     return { ok: false, error: 'No se pudo quitar' };
   }
+  const nombre = (previo.data as { nombre?: string } | null)?.nombre;
+  if (nombre) await apagarBusquedasDeSitio(nombre); // que no sigan gastando búsquedas de un sitio que ya no existe
   revalidatePath('/ajustes', 'layout');
   return { ok: true };
 }
@@ -173,11 +180,27 @@ export async function guardarPuestos(datos: unknown): Promise<Resultado> {
   return { ok: true };
 }
 
-/** Enciende o apaga las búsquedas de un tema en un sitio (todos los portales a la vez). */
+/** Enciende o apaga las búsquedas de un tema en un sitio (todos los portales a la vez). Si el sitio aún no las tiene, las crea. */
 export async function cambiarBusquedas(sitio: unknown, tema: unknown, activa: unknown): Promise<Resultado> {
   await requireSession();
   const d = z.strictObject({ sitio: z.string().trim().min(1).max(80), tema: z.string().trim().min(1).max(60), activa: z.boolean() }).safeParse({ sitio, tema, activa });
   if (!d.success) return { ok: false, error: 'Datos no válidos' };
+
+  const existentes = await db().from('consultas').select('id').eq('sitio', d.data.sitio).eq('tema', d.data.tema);
+  if (!existentes.error && (existentes.data ?? []).length === 0) {
+    if (!d.data.activa) return { ok: true };
+    const [lugar, info] = await Promise.all([
+      db().from('ubicaciones').select('nombre,radio_km,activa').eq('nombre', d.data.sitio).maybeSingle(),
+      db().from('temas_busqueda').select('nombre').eq('clave', d.data.tema).maybeSingle(),
+    ]);
+    const u = lugar.data as { nombre: string; radio_km: number; activa: boolean } | null;
+    if (!u || !u.activa) return { ok: false, error: 'Ese sitio no está activo' };
+    const creadas = await crearBusquedasDeTema(u, d.data.tema, (info.data as { nombre?: string } | null)?.nombre ?? d.data.tema);
+    if (creadas === 0) return { ok: false, error: 'No hay una búsqueda de este tema que se pueda copiar a este sitio' };
+    revalidatePath('/ajustes', 'layout');
+    return { ok: true };
+  }
+
   const res = await db().from('consultas').update({ activa: d.data.activa, updated_at: new Date().toISOString() }).eq('sitio', d.data.sitio).eq('tema', d.data.tema).select('id');
   if (res.error || !res.data || res.data.length === 0) {
     console.error('[cambiarBusquedas]', res.error?.code ?? 'sin filas');
