@@ -25,7 +25,7 @@ export default function EjecucionCard({ e }: { e: Ejecucion }) {
   const fallos = e.fuentes_error ?? [];
   const tipo = e.tipo === 'diaria' ? 'Diaria' : e.tipo === 'prueba' ? 'Prueba' : e.tipo;
   return (
-    <Link href={`/historial?ej=${e.id}`} className="card block p-5">
+    <Link href={`/registro?ej=${e.id}`} className="card block p-5">
       <div className="flex items-center gap-2">
         <span aria-hidden className={`size-2.5 shrink-0 rounded-full ${est.punto}`} />
         <span className="num text-[17px] font-semibold">{fmtHora(e.iniciada_en)}</span>

@@ -18,7 +18,7 @@ function href(v: Valores): string {
   if (v.motivo) p.set('motivo', v.motivo);
   if (v.plat) p.set('plat', v.plat);
   p.set('rango', v.rango);
-  return `/descartes?${p.toString()}`;
+  return `/descartadas?${p.toString()}`;
 }
 
 const chip = (activo: boolean) =>
@@ -60,7 +60,7 @@ export default function FiltrosDescartes({
             {plataformas.map((p) => <option key={p} value={p}>{p}</option>)}
           </select>
         </div>
-        {hayFiltros && <Link href="/descartes" className="btn" scroll={false}>Limpiar filtros</Link>}
+        {hayFiltros && <Link href="/descartadas" className="btn" scroll={false}>Limpiar filtros</Link>}
       </div>
     </div>
   );

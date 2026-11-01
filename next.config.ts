@@ -15,6 +15,12 @@ const csp = [
 
 const config: NextConfig = {
   poweredByHeader: false,
+  async redirects() {
+    return [
+      { source: '/descartes', destination: '/descartadas', permanent: false },
+      { source: '/historial', destination: '/registro', permanent: false },
+    ];
+  },
   async headers() {
     return [
       {

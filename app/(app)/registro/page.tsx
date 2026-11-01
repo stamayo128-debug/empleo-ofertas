@@ -33,9 +33,9 @@ export default async function HistorialPage({ searchParams }: { searchParams: Pr
 
   return (
     <div className="max-w-[760px] space-y-5">
-      <h1 className="text-xl font-semibold">Búsquedas</h1>
+      <h1 className="text-xl font-semibold">Registro</h1>
       {filas.length === 0 ? (
-        <EmptyState>Todavía no hay búsquedas registradas.</EmptyState>
+        <EmptyState>Todavía no hay búsquedas en el registro.</EmptyState>
       ) : (
         <>
           {dias.map(({ dia, items }) => (
@@ -47,7 +47,7 @@ export default async function HistorialPage({ searchParams }: { searchParams: Pr
             </section>
           ))}
           {filas.length < total && (
-            <Link href={`/historial?lim=${lim + 30}`} className="btn w-full">
+            <Link href={`/registro?lim=${lim + 30}`} className="btn w-full">
               Cargar más ({filas.length} de {total})
             </Link>
           )}
@@ -62,7 +62,7 @@ async function DetalleBusqueda({ id }: { id: number }) {
   if (!e) {
     return (
       <div className="max-w-[760px] space-y-4">
-        <EmptyState acciones={<Link href="/historial" className="btn">Volver a Búsquedas</Link>}>No se encontró esa búsqueda.</EmptyState>
+        <EmptyState acciones={<Link href="/registro" className="btn">Volver al Registro</Link>}>No se encontró esa búsqueda.</EmptyState>
       </div>
     );
   }
@@ -82,7 +82,7 @@ async function DetalleBusqueda({ id }: { id: number }) {
     const p = porPortal.get(b.plataforma) ?? {
       plataforma: b.plataforma, consultas: 0, resultados: 0, nuevas: 0, descartadas: 0, conocidas: 0, errores: [],
       hrefOfertas: hrefOfertas({ tab: 'todas', plat: [b.plataforma], dia: diaFiltro }),
-      hrefDescartes: `/descartes?plat=${encodeURIComponent(b.plataforma)}&rango=${rango}`,
+      hrefDescartes: `/descartadas?plat=${encodeURIComponent(b.plataforma)}&rango=${rango}`,
     };
     p.consultas += 1;
     p.resultados += (scraper.get(b.id) ?? 0) > 0 ? scraper.get(b.id)! : b.resultados;
@@ -99,7 +99,7 @@ async function DetalleBusqueda({ id }: { id: number }) {
   return (
     <div className="max-w-[760px] space-y-5">
       <div className="flex items-center gap-3">
-        <Link href="/historial" className="icon-btn" aria-label="Volver a Búsquedas"><ArrowLeft size={20} aria-hidden /></Link>
+        <Link href="/registro" className="icon-btn" aria-label="Volver al Registro"><ArrowLeft size={20} aria-hidden /></Link>
         <div>
           <h1 className="text-xl font-semibold">{etiquetaDia(dia)} · <span className="num">{fmtHora(e.iniciada_en)}</span></h1>
           <p className="meta flex items-center gap-2">

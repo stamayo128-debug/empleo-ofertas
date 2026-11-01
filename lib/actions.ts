@@ -89,7 +89,7 @@ export async function recuperarDescarte(idEntrada: number): Promise<{ ok: true; 
   const upd = await db().from('descartes').update({ recuperada_como: ins.data.id }).eq('id', d.id);
   if (upd.error) console.error('[recuperarDescarte:enlace]', upd.error.code ?? '');
   revalidatePath('/');
-  revalidatePath('/descartes');
+  revalidatePath('/descartadas');
   return { ok: true, ofertaId: ins.data.id as number };
 }
 
@@ -186,7 +186,7 @@ export async function descartarOfertas(entrada: unknown): Promise<{ ok: true; ca
     .map((c) => ({ id: c.id as number, estado_anterior: c.estado_anterior as string }));
   if (cambios.length === 0) return { ok: false, error: 'Ya estaban descartadas' };
   revalidatePath('/');
-  revalidatePath('/descartes');
+  revalidatePath('/descartadas');
   return { ok: true, cambios };
 }
 
@@ -200,7 +200,7 @@ export async function deshacerDescartes(cambios: unknown): Promise<{ ok: true } 
     return { ok: false, error: 'No se pudo deshacer' };
   }
   revalidatePath('/');
-  revalidatePath('/descartes');
+  revalidatePath('/descartadas');
   return { ok: true };
 }
 
@@ -234,7 +234,7 @@ export async function fusionarOfertas(entrada: unknown): Promise<{ ok: true; pri
   }
   const principal = (res.data as { principal?: unknown } | null)?.principal;
   revalidatePath('/');
-  revalidatePath('/descartes');
+  revalidatePath('/descartadas');
   return { ok: true, principal: typeof principal === 'string' ? principal : '' };
 }
 

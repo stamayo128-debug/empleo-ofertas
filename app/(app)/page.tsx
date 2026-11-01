@@ -142,7 +142,7 @@ function Vacio({
         <EmptyState
           acciones={
             <>
-              <Link href="/descartes?rango=hoy" className="btn">Ver descartes de hoy</Link>
+              <Link href="/descartadas?rango=hoy" className="btn">Ver descartes de hoy</Link>
               <Link href={hrefOfertas({ tab: 'revisar' })} className="btn">Ver por revisar</Link>
             </>
           }
