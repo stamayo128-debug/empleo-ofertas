@@ -3,7 +3,7 @@ import { ChevronRight, LogOut, SlidersHorizontal } from 'lucide-react';
 import { cerrarSesion } from '@/app/login/actions';
 import AjustesMenu from '@/components/AjustesMenu';
 import ExcelBoton from '@/components/ExcelBoton';
-import { listarUbicaciones, obtenerCriterios } from '@/lib/queries';
+import { listarCatalogoBusquedas, listarUbicaciones, obtenerCriterios } from '@/lib/queries';
 import { requireSession } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
@@ -11,9 +11,10 @@ export const dynamic = 'force-dynamic';
 /** Menú de Ajustes: cada apartado es una tarjeta que abre su propia pantalla. */
 export default async function AjustesPage() {
   await requireSession();
-  const [sitios, criterios] = await Promise.all([
+  const [sitios, criterios, catalogo] = await Promise.all([
     listarUbicaciones().catch(() => []),
     obtenerCriterios().catch(() => null),
+    listarCatalogoBusquedas().catch(() => ({ temas: [], filas: [] })),
   ]);
 
   const activos = sitios.filter((s) => s.activa);
@@ -21,8 +22,11 @@ export default async function AjustesPage() {
   const puestos = (criterios?.puestos_objetivo.length ?? 0) + (criterios?.puestos_adyacentes.length ?? 0);
   const resumenPerfil = criterios?.perfil_candidato?.trim() ? `${criterios.perfil_candidato.length} de 3000 caracteres` : 'Aún sin rellenar';
 
+  const nBusquedas = catalogo.filas.filter((f) => f.activa).length;
+
   const apartados = [
     { href: '/ajustes/donde', titulo: 'Dónde busco', resumen: resumenSitios || 'Sin sitios' },
+    { href: '/ajustes/busquedas', titulo: 'Mis búsquedas', resumen: nBusquedas === 1 ? '1 búsqueda activa' : `${nBusquedas} búsquedas activas` },
     { href: '/ajustes/perfil', titulo: 'Mi perfil', resumen: resumenPerfil },
     { href: '/ajustes/puestos', titulo: 'Qué puestos busco', resumen: puestos === 1 ? '1 puesto de ejemplo' : `${puestos} puestos de ejemplo` },
   ];

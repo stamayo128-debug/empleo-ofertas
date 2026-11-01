@@ -2,7 +2,7 @@ import 'server-only';
 import { cache } from 'react';
 import { db, fetchAll, ok } from './db';
 import type { Filtros } from './filtros';
-import type { Busqueda, Criterios, CuadreBusqueda, Descarte, DescartadaPorTi, Ejecucion, Evento, NotaAgente, Oferta, OfertaLista, Ubicacion } from './types';
+import type { Busqueda, BusquedaCatalogo, Criterios, CuadreBusqueda, Descarte, DescartadaPorTi, Ejecucion, Evento, NotaAgente, Oferta, OfertaLista, TemaBusqueda, Ubicacion } from './types';
 import { hoyMadrid, inicioDiaMadrid, restarDias } from './format';
 import { categoriaDe, type Descartada, type FiltroDescartadas } from './descartadas';
 import { grupoPortal } from './portales';
@@ -150,6 +150,15 @@ export async function cuadreDe(ids: number[]): Promise<CuadreBusqueda[]> {
 export async function listarUbicaciones(): Promise<Ubicacion[]> {
   const res = await db().from('ubicaciones').select('id,nombre,radio_km,activa,orden').order('orden').order('id');
   return ok<Ubicacion[]>(res as never) ?? [];
+}
+
+// ---------- Catálogo de búsquedas ----------
+export async function listarCatalogoBusquedas(): Promise<{ temas: TemaBusqueda[]; filas: BusquedaCatalogo[] }> {
+  const [temas, filas] = await Promise.all([
+    db().from('temas_busqueda').select('clave,nombre,descripcion,orden').order('orden'),
+    db().from('consultas').select('id,plataforma,descripcion,activa,dias_semana,sitio,tema').not('tema', 'is', null).not('sitio', 'is', null).order('id'),
+  ]);
+  return { temas: ok<TemaBusqueda[]>(temas as never) ?? [], filas: ok<BusquedaCatalogo[]>(filas as never) ?? [] };
 }
 
 // ---------- Criterios y notas del agente ----------

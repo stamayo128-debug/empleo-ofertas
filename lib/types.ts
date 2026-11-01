@@ -151,6 +151,19 @@ export type Ubicacion = {
   orden: number;
 };
 
+/** Una búsqueda programada (tabla consultas) con su tema y su sitio. */
+export type BusquedaCatalogo = {
+  id: number;
+  plataforma: string;
+  descripcion: string;
+  activa: boolean;
+  dias_semana: number[];
+  sitio: string;
+  tema: string;
+};
+
+export type TemaBusqueda = { clave: string; nombre: string; descripcion: string | null; orden: number };
+
 export type NotaAgente = {
   id: number;
   tipo: string;

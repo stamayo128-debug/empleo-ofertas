@@ -1,9 +1,9 @@
 import Link from 'next/link';
-import { Briefcase, ChevronRight, MapPin, UserRound } from 'lucide-react';
+import { Briefcase, ChevronRight, MapPin, Search, UserRound } from 'lucide-react';
 
 type Apartado = { href: string; titulo: string; resumen: string };
 
-const ICONOS = { '/ajustes/donde': MapPin, '/ajustes/perfil': UserRound, '/ajustes/puestos': Briefcase } as const;
+const ICONOS = { '/ajustes/donde': MapPin, '/ajustes/perfil': UserRound, '/ajustes/puestos': Briefcase, '/ajustes/busquedas': Search } as const;
 
 /** Las tarjetas del menú de Ajustes: cada una abre su apartado. */
 export default function AjustesMenu({ apartados }: { apartados: Apartado[] }) {
