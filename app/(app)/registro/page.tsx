@@ -4,8 +4,8 @@ import EjecucionCard, { Cifra, ESTADO_EJ } from '@/components/EjecucionCard';
 import EmptyState from '@/components/EmptyState';
 import PortalCard, { type ResumenPortal } from '@/components/PortalCard';
 import { hrefOfertas, type SP } from '@/lib/filtros';
-import { diaMadrid, diasDesde, etiquetaDia, fmtDia, fmtHora } from '@/lib/format';
-import { grupoPortal } from '@/lib/portales';
+import { diaMadrid, diasDesde, etiquetaDia, fmtHora } from '@/lib/format';
+import { grupoPortal, PORTALES } from '@/lib/portales';
 import { busquedasDe, cuadreDe, listarEjecuciones, obtenerEjecucion } from '@/lib/queries';
 import { requireSession } from '@/lib/session';
 import type { Ejecucion } from '@/lib/types';
@@ -68,7 +68,6 @@ async function DetalleBusqueda({ id }: { id: number }) {
     );
   }
   const [busquedas, cuadre] = await Promise.all([busquedasDe([id]), cuadreDe([id])]);
-  const cola = new Map(cuadre.map((c) => [c.id, Number(c.cola_pendiente ?? 0)]));
   const scraper = new Map(cuadre.map((c) => [c.id, Number(c.resultados_scraper ?? 0)]));
   const est = ESTADO_EJ[e.estado] ?? ESTADO_EJ.en_curso;
   const dia = diaMadrid(e.iniciada_en);
@@ -76,14 +75,14 @@ async function DetalleBusqueda({ id }: { id: number }) {
   // Los enlaces filtran por «desde ese día»: las ofertas no guardan a qué búsqueda pertenecen.
   const n = diasDesde(dia);
   const diaFiltro = n <= 0 ? 'hoy' : n <= 6 ? '7' : n <= 29 ? '30' : '';
-  const rango = n <= 0 ? 'hoy' : n <= 6 ? '7' : '30';
 
   const porPortal = new Map<string, ResumenPortal>();
   for (const b of busquedas) {
-    const p = porPortal.get(b.plataforma) ?? {
-      plataforma: b.plataforma, consultas: 0, resultados: 0, nuevas: 0, descartadas: 0, conocidas: 0, errores: [],
-      hrefOfertas: hrefOfertas({ plat: [grupoPortal(b.plataforma)], dia: diaFiltro }),
-      hrefDescartes: `/descartadas?plat=${grupoPortal(b.plataforma)}`,
+    const g = grupoPortal(b.plataforma);
+    const p = porPortal.get(g) ?? {
+      plataforma: PORTALES.find((x) => x.valor === g)?.etiqueta ?? g, consultas: 0, resultados: 0, nuevas: 0, descartadas: 0, conocidas: 0, errores: [],
+      hrefOfertas: hrefOfertas({ plat: [g], dia: diaFiltro }),
+      hrefDescartes: `/descartadas?plat=${g}`,
     };
     p.consultas += 1;
     p.resultados += (scraper.get(b.id) ?? 0) > 0 ? scraper.get(b.id)! : b.resultados;
@@ -91,10 +90,9 @@ async function DetalleBusqueda({ id }: { id: number }) {
     p.descartadas += b.nuevas_descartadas;
     p.conocidas += b.ya_conocidas;
     if (b.error && !p.errores.includes(b.error)) p.errores.push(b.error);
-    porPortal.set(b.plataforma, p);
+    porPortal.set(g, p);
   }
-  const portales = [...porPortal.values()];
-  const colaTotal = busquedas.reduce((t, b) => t + (cola.get(b.id) ?? 0), 0);
+  const portales = PORTALES.map((x) => porPortal.get(x.valor)).filter((x): x is ResumenPortal => !!x);
   const fallos = e.fuentes_error ?? [];
 
   return (
@@ -131,57 +129,6 @@ async function DetalleBusqueda({ id }: { id: number }) {
           {portales.map((p) => <li key={p.plataforma}><PortalCard p={p} /></li>)}
         </ul>
       )}
-
-      {e.resumen && (
-        <details className="card group">
-          <summary className="flex min-h-14 cursor-pointer list-none items-center px-5 text-[15px] font-semibold [&::-webkit-details-marker]:hidden">
-            Resumen del agente
-          </summary>
-          <p className="max-h-80 overflow-auto whitespace-pre-wrap border-t border-border p-5 text-sm text-muted">{e.resumen}</p>
-        </details>
-      )}
-
-      <details className="card group">
-        <summary className="flex min-h-14 cursor-pointer list-none items-center px-5 text-[15px] font-semibold [&::-webkit-details-marker]:hidden">
-          Datos técnicos
-        </summary>
-        <div className="space-y-3 border-t border-border p-5 text-sm">
-          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
-            <dt className="text-muted">Inicio</dt><dd className="num">{fmtDia(e.iniciada_en)} {fmtHora(e.iniciada_en)}</dd>
-            {e.finalizada_en && (<><dt className="text-muted">Fin</dt><dd className="num">{fmtHora(e.finalizada_en)}</dd></>)}
-            {e.ventana && (<><dt className="text-muted">Ventana</dt><dd>{e.ventana}</dd></>)}
-            <dt className="text-muted">Resultados</dt><dd className="num">{e.total_resultados}</dd>
-            <dt className="text-muted">Cola pendiente</dt><dd className="num">{colaTotal}</dd>
-            {e.coste_estimado_usd !== null && (<><dt className="text-muted">Coste estimado</dt><dd className="num">{Number(e.coste_estimado_usd).toFixed(2)} USD</dd></>)}
-          </dl>
-          {busquedas.length > 0 && (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[520px] text-left">
-                <thead className="text-muted">
-                  <tr>
-                    <th className="py-1 pr-3 font-medium">Consulta</th>
-                    <th className="py-1 pr-3 font-medium">Portal</th>
-                    <th className="py-1 pr-3 text-right font-medium">Result.</th>
-                    <th className="py-1 pr-3 text-right font-medium">Nuevas</th>
-                    <th className="py-1 text-right font-medium">En cola</th>
-                  </tr>
-                </thead>
-                <tbody className="num">
-                  {busquedas.map((b) => (
-                    <tr key={b.id} className="border-t border-border align-top">
-                      <td className="py-1.5 pr-3">{b.consulta_texto}</td>
-                      <td className="py-1.5 pr-3">{b.plataforma}</td>
-                      <td className="py-1.5 pr-3 text-right">{(scraper.get(b.id) ?? 0) > 0 ? scraper.get(b.id) : b.resultados}</td>
-                      <td className="py-1.5 pr-3 text-right">{b.nuevas_aceptadas}</td>
-                      <td className="py-1.5 text-right">{cola.get(b.id) ?? 0}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </details>
     </div>
   );
 }
