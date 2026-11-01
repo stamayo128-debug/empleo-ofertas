@@ -17,7 +17,7 @@ export default function DescartadaCard({ d, posibleError = false }: { d: Descart
         {nombrePortal(d.portal)} · {haceDias(d.fecha)}{d.origen === 'tu' && ' · Descartada por ti'}
       </p>
       <div>
-        <h3 className="text-[17px] font-semibold leading-snug">{d.puesto}</h3>
+        <h2 className="text-[17px] font-semibold leading-snug">{d.puesto}</h2>
         <p className="meta">{[d.empresa, d.lugar].filter(Boolean).join(' · ')}</p>
       </div>
       <div className="space-y-1">

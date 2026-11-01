@@ -39,7 +39,7 @@ export default function UbicacionesEditor({ sitios, remoto }: { sitios: Ubicacio
                 <label className="flex items-center gap-2 text-sm text-muted">
                   <span>Radio</span>
                   <select
-                    className="input !min-h-9 !w-auto !px-3 !py-1 text-sm" value={s.radio_km} aria-label={`Radio de ${s.nombre} en kilómetros`}
+                    className="input !min-h-11 !w-auto !px-3 !py-1 text-sm" value={s.radio_km} aria-label={`Radio de ${s.nombre} en kilómetros`}
                     onChange={(e) => ejecutar(() => cambiarUbicacion(s.id, { radio_km: Number(e.target.value) }))}
                   >
                     {opciones.map((r) => <option key={r} value={r}>{r} km</option>)}

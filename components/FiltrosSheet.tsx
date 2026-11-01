@@ -14,7 +14,19 @@ export default function FiltrosSheet({
     document.body.style.overflow = 'hidden';
     const foco = document.activeElement as HTMLElement | null;
     dialogo.current?.focus();
-    const alPulsar = (e: KeyboardEvent) => { if (e.key === 'Escape') onCerrar(); };
+    const alPulsar = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { onCerrar(); return; }
+      if (e.key !== 'Tab' || !dialogo.current) return;
+      // El foco se queda dentro del diálogo: Tab y Mayús+Tab dan la vuelta entre sus controles.
+      const foco = [...dialogo.current.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')]
+        .filter((el) => !(el as HTMLButtonElement).disabled && el.offsetParent !== null);
+      if (foco.length === 0) return;
+      const primero = foco[0];
+      const ultimo = foco[foco.length - 1];
+      const actual = document.activeElement;
+      if (e.shiftKey && (actual === primero || actual === dialogo.current)) { e.preventDefault(); ultimo.focus(); }
+      else if (!e.shiftKey && (actual === ultimo || !dialogo.current.contains(actual))) { e.preventDefault(); primero.focus(); }
+    };
     document.addEventListener('keydown', alPulsar);
     return () => {
       document.removeEventListener('keydown', alPulsar);
