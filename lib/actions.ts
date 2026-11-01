@@ -93,6 +93,85 @@ export async function recuperarDescarte(idEntrada: number): Promise<{ ok: true; 
   return { ok: true, ofertaId: ins.data.id as number };
 }
 
+// ---------- Ajustes: sitios donde busco y puestos ----------
+const nombreSitio = z.string().trim().min(2).max(80);
+const radioSitio = z.number().int().min(1).max(200);
+const listaPuestos = z.array(z.string().trim().min(1).max(120)).max(60);
+type Resultado = { ok: true } | { ok: false; error: string };
+
+export async function anadirUbicacion(nombre: unknown, radio: unknown): Promise<Resultado> {
+  await requireSession();
+  const n = nombreSitio.safeParse(nombre);
+  const r = radioSitio.safeParse(radio);
+  if (!n.success || !r.success) return { ok: false, error: 'Escribe el nombre del sitio y un radio válido' };
+  const ult = await db().from('ubicaciones').select('orden').order('orden', { ascending: false }).limit(1);
+  const orden = ((ult.data?.[0] as { orden?: number } | undefined)?.orden ?? 0) + 1;
+  const res = await db().from('ubicaciones').insert({ nombre: n.data, radio_km: r.data, orden });
+  if (res.error) {
+    if (res.error.code === '23505') return { ok: false, error: 'Ese sitio ya está en la lista' };
+    console.error('[anadirUbicacion]', res.error.code ?? '');
+    return { ok: false, error: 'No se pudo añadir' };
+  }
+  revalidatePath('/ajustes');
+  return { ok: true };
+}
+
+export async function cambiarUbicacion(idEntrada: unknown, cambios: unknown): Promise<Resultado> {
+  await requireSession();
+  const id = idSchema.safeParse(idEntrada);
+  const c = z.strictObject({ radio_km: radioSitio.optional(), activa: z.boolean().optional() }).safeParse(cambios);
+  if (!id.success || !c.success || Object.keys(c.data).length === 0) return { ok: false, error: 'Datos no válidos' };
+  const res = await db().from('ubicaciones').update(c.data).eq('id', id.data).select('id');
+  if (res.error || !res.data || res.data.length === 0) {
+    console.error('[cambiarUbicacion]', res.error?.code ?? 'sin filas');
+    return { ok: false, error: 'No se pudo guardar' };
+  }
+  revalidatePath('/ajustes');
+  return { ok: true };
+}
+
+export async function quitarUbicacion(idEntrada: unknown): Promise<Resultado> {
+  await requireSession();
+  const id = idSchema.safeParse(idEntrada);
+  if (!id.success) return { ok: false, error: 'Datos no válidos' };
+  const res = await db().from('ubicaciones').delete().eq('id', id.data);
+  if (res.error) {
+    console.error('[quitarUbicacion]', res.error.code ?? '');
+    return { ok: false, error: 'No se pudo quitar' };
+  }
+  revalidatePath('/ajustes');
+  return { ok: true };
+}
+
+/** «Aceptar remoto desde España». Solo toca ese campo de los criterios. */
+export async function cambiarRemoto(valor: unknown): Promise<Resultado> {
+  await requireSession();
+  const v = z.boolean().safeParse(valor);
+  if (!v.success) return { ok: false, error: 'Datos no válidos' };
+  const res = await db().from('criterios_busqueda').update({ aceptar_remoto_espana: v.data }).eq('activo', true).select('id');
+  if (res.error || !res.data || res.data.length === 0) {
+    console.error('[cambiarRemoto]', res.error?.code ?? 'sin filas');
+    return { ok: false, error: 'No se pudo guardar' };
+  }
+  revalidatePath('/ajustes');
+  return { ok: true };
+}
+
+/** Los dos listados de puestos. Solo toca esos dos campos (el resto de criterios no se reescribe). */
+export async function guardarPuestos(datos: unknown): Promise<Resultado> {
+  await requireSession();
+  const p = z.strictObject({ puestos_objetivo: listaPuestos, puestos_adyacentes: listaPuestos }).safeParse(datos);
+  if (!p.success) return { ok: false, error: 'Datos no válidos' };
+  const res = await db().from('criterios_busqueda').update(p.data).eq('activo', true).select('id');
+  if (res.error || !res.data || res.data.length === 0) {
+    console.error('[guardarPuestos]', res.error?.code ?? 'sin filas');
+    return { ok: false, error: 'No se pudo guardar' };
+  }
+  revalidatePath('/ajustes');
+  revalidatePath('/criterios');
+  return { ok: true };
+}
+
 // ---------- Guardar una oferta para verla después ----------
 export async function alternarGuardada(idEntrada: number, guardada: boolean): Promise<{ ok: true } | { ok: false; error: string }> {
   await requireSession();

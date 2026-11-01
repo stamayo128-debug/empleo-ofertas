@@ -143,6 +143,14 @@ export type Criterios = {
   updated_at: string | null;
 };
 
+export type Ubicacion = {
+  id: number;
+  nombre: string;
+  radio_km: number;
+  activa: boolean;
+  orden: number;
+};
+
 export type NotaAgente = {
   id: number;
   tipo: string;
