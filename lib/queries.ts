@@ -1,11 +1,10 @@
 import 'server-only';
 import { cache } from 'react';
-import { unstable_cache } from 'next/cache';
 import { db, fetchAll, ok } from './db';
-import { ZONAS_FILTRO, type TabId } from './constantes';
 import type { Filtros } from './filtros';
 import type { Busqueda, Criterios, CuadreBusqueda, Descarte, DescartadaPorTi, Ejecucion, Evento, NotaAgente, Oferta, OfertaLista } from './types';
 import { hoyMadrid, inicioDiaMadrid, restarDias } from './format';
+import { grupoPortal } from './portales';
 
 const SIN_DESCARTADAS = 'Descartada';
 
@@ -15,108 +14,37 @@ const COLUMNAS_LISTA = [
   'url', 'url_principal', 'fuentes', 'fecha_publicacion', 'fecha_publicacion_estimada', 'salario', 'tiene_salario',
   'descripcion_clara', 'calidad_datos', 'encaje', 'estado', 'sin_revisar', 'por_verificar', 'origen',
   'respuesta_tipo', 'proximo_seguimiento', 'fecha_envio', 'descarte_usuario_motivo', 'guardada_en',
+  'tramo_experiencia', 'fecha_deteccion',
 ].join(',');
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function baseTab(q: any, tab: TabId, incluirDescartadas: boolean) {
-  switch (tab) {
-    case 'hoy':
-      return q.eq('es_de_hoy', true).neq('estado', SIN_DESCARTADAS);
-    case 'revisar':
-      return q.is('revisada_en', null).neq('estado', SIN_DESCARTADAS);
-    case 'verificar':
-      return q.eq('por_verificar', true);
-    case 'porenviar':
-      return q.in('estado', ['Pendiente', 'Mensaje preparado']);
-    case 'enviadas':
-      return q.in('estado', ['Postulado', 'Entrevista', 'Rechazado']);
-    default:
-      return incluirDescartadas ? q : q.neq('estado', SIN_DESCARTADAS);
+/** Ids de las ofertas que están en alguno de los portales elegidos (en cualquiera de sus fuentes, no solo la principal). */
+async function idsPorPortal(grupos: string[]): Promise<number[]> {
+  const [fuentes, principales] = await Promise.all([
+    fetchAll<{ oferta_id: number; plataforma: string }>('ofertas_fuentes', 'oferta_id,plataforma', 'id'),
+    fetchAll<{ id: number; plataforma_principal: string }>('v_ofertas_web', 'id,plataforma_principal', 'id'),
+  ]);
+  const ids = new Set<number>();
+  for (const f of fuentes) if (grupos.includes(grupoPortal(f.plataforma))) ids.add(f.oferta_id);
+  for (const o of principales) if (grupos.includes(grupoPortal(o.plataforma_principal))) ids.add(o.id);
+  return [...ids];
+}
+
+/** Ofertas activas (las descartadas tienen su propia pantalla), las más nuevas primero. */
+export async function listarOfertas(f: Filtros): Promise<{ filas: OfertaLista[]; total: number }> {
+  let q = db().from('v_ofertas_web').select(COLUMNAS_LISTA, { count: 'exact' }).neq('estado', SIN_DESCARTADAS);
+  if (f.plat.length) {
+    const ids = await idsPorPortal(f.plat);
+    if (ids.length === 0) return { filas: [], total: 0 };
+    q = q.in('id', ids);
   }
-}
-
-/** Quita caracteres con significado especial en filtros PostgREST / ilike. */
-function limpiarBusqueda(s: string): string {
-  return s.replace(/[,()%*_\\:"'`;]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80);
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function aplicarFiltros(q: any, f: Filtros) {
-  if (f.plat.length) q = q.in('plataforma', f.plat);
-  if (f.estado) q = q.eq('estado', f.estado);
-  if (f.encaje) q = q.eq('encaje', f.encaje);
-  if (f.mod === 'remoto') q = q.eq('es_remoto', true);
-  else if (f.mod) q = q.eq('modalidad', f.mod);
-  if (f.sal === 'si') q = q.eq('tiene_salario', true);
-  else if (f.sal === 'no') q = q.eq('tiene_salario', false);
-  if (f.exp === 'max1') q = q.in('tramo_experiencia', ['sin_experiencia', 'hasta_1']);
-  else if (f.exp === 'max2') q = q.in('tramo_experiencia', ['sin_experiencia', 'hasta_1', 'hasta_2']);
-  else if (f.exp === 'mas2') q = q.eq('tramo_experiencia', 'mas_de_2');
-  else if (f.exp === 'no_indica') q = q.eq('tramo_experiencia', 'no_indica');
-  if (f.zona === 'otra') q = q.in('zona', ['otra', 'euskadi_otra']);
-  else if (ZONAS_FILTRO.some((z) => z.valor === f.zona)) q = q.eq('zona', f.zona);
   if (f.dia) {
     const hoy = hoyMadrid();
     q = q.gte('fecha_deteccion', f.dia === 'hoy' ? hoy : restarDias(hoy, Number(f.dia) - 1));
   }
-  if (f.origen === 'recuperada') q = q.eq('origen', 'recuperada');
-  const t = limpiarBusqueda(f.q);
-  if (t) q = q.or(`puesto.ilike.*${t}*,empresa.ilike.*${t}*,lugar.ilike.*${t}*,municipio.ilike.*${t}*`);
-  return q;
-}
-
-export async function contadoresTabs(): Promise<Record<TabId, number>> {
-  const tabs: TabId[] = ['hoy', 'revisar', 'verificar', 'porenviar', 'enviadas', 'todas'];
-  const res = await Promise.all(
-    tabs.map((t) => baseTab(db().from('v_ofertas_web').select('id', { count: 'exact', head: true }), t, false)),
-  );
-  const out = {} as Record<TabId, number>;
-  tabs.forEach((t, i) => {
-    const r = res[i] as { count: number | null; error: { message: string } | null };
-    if (r.error) throw new Error('Error de base de datos');
-    out[t] = r.count ?? 0;
-  });
-  return out;
-}
-
-export async function listarOfertas(f: Filtros): Promise<{ filas: OfertaLista[]; total: number }> {
-  // Solo las columnas que usan la tarjeta y sus botones; el detalle pide la fila completa aparte.
-  let q = db().from('v_ofertas_web').select(COLUMNAS_LISTA, { count: 'exact' });
-  q = aplicarFiltros(baseTab(q, f.tab, f.descartadas), f);
-
-  const porPublicacion = f.orden === 'publicacion';
-  const porDeteccion = f.orden === 'deteccion';
-  if (porDeteccion) {
-    q = q.order('fecha_deteccion', { ascending: false });
-  } else if (porPublicacion) {
-    q = q.order('fecha_publicacion', { ascending: false, nullsFirst: false });
-  } else if (f.tab === 'hoy') {
-    q = q.order('encaje', { ascending: true }).order('fecha_publicacion', { ascending: false, nullsFirst: false });
-  } else if (f.tab === 'porenviar') {
-    q = q.order('encaje', { ascending: true }).order('fecha_publicacion', { ascending: false, nullsFirst: false });
-  } else if (f.tab === 'enviadas') {
-    q = q.order('orden_enviadas', { ascending: true }).order('proximo_seguimiento', { ascending: true, nullsFirst: false });
-  } else {
-    q = q.order('fecha_deteccion', { ascending: false });
-  }
-  q = q.order('id', { ascending: false }).range(0, f.lim - 1);
-
+  q = q.order('fecha_deteccion', { ascending: false }).order('id', { ascending: false }).range(0, f.lim - 1);
   const res = (await q) as unknown as { data: OfertaLista[] | null; count: number | null; error: { message: string } | null };
   const filas = ok<OfertaLista[]>(res as never) ?? [];
   return { filas, total: res.count ?? filas.length };
-}
-
-// Equivale a "select distinct plataforma": PostgREST no tiene DISTINCT, se deduplica aquí.
-// Leer toda la tabla en cada clic era lo más caro de la pantalla: se guarda 10 minutos.
-async function leerPlataformas(tabla: 'ofertas' | 'descartes'): Promise<string[]> {
-  const filas = await fetchAll<{ plataforma: string }>(tabla, 'plataforma', 'id');
-  return [...new Set(filas.map((x) => x.plataforma).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es'));
-}
-const plataformasOfertasCache = unstable_cache(() => leerPlataformas('ofertas'), ['plataformas-ofertas'], { revalidate: 600, tags: ['plataformas'] });
-const plataformasDescartesCache = unstable_cache(() => leerPlataformas('descartes'), ['plataformas-descartes'], { revalidate: 600, tags: ['plataformas'] });
-
-export async function plataformasDisponibles(): Promise<string[]> {
-  try { return await plataformasOfertasCache(); } catch { return leerPlataformas('ofertas'); }
 }
 
 /** Ofertas guardadas con el marcador, la última guardada primero. */
@@ -186,7 +114,8 @@ export async function resumenMotivos30d(): Promise<{ motivo: string; n_30d: numb
 }
 
 export async function plataformasDescartes(): Promise<string[]> {
-  try { return await plataformasDescartesCache(); } catch { return leerPlataformas('descartes'); }
+  const filas = await fetchAll<{ plataforma: string }>('descartes', 'plataforma', 'id');
+  return [...new Set(filas.map((x) => x.plataforma).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es'));
 }
 
 export async function descartesDeHoy(): Promise<number> {

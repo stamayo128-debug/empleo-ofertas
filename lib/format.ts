@@ -98,6 +98,16 @@ export function publicadaTexto(fecha: string | null, estimada: boolean): string 
   return `${pre}publicada el ${fmtDia(fecha)}`;
 }
 
+/** «Hoy», «Ayer», «Hace 3 días» o la fecha corta (dd/mm) si es de hace más de un mes. */
+export function haceDias(v: string | null | undefined): string {
+  if (!v) return '';
+  const n = diasDesde(v);
+  if (n <= 0) return 'Hoy';
+  if (n === 1) return 'Ayer';
+  if (n <= 30) return `Hace ${n} días`;
+  return fmtCorta(v);
+}
+
 /** Solo devuelve la URL si es http(s); evita esquemas como javascript:. */
 export function urlSegura(u?: string | null): string | null {
   if (!u) return null;
