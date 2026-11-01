@@ -50,7 +50,7 @@ export default async function DescartesPage({ searchParams }: { searchParams: Pr
       <Link href="/ajustes" className="inline-flex min-h-11 items-center gap-2 text-[15px] font-medium text-accent md:hidden">
         <ArrowLeft size={18} aria-hidden /> Ajustes
       </Link>
-      <h1 className="text-xl font-semibold">Descartes</h1>
+      <h1 className="text-xl font-semibold">Descartadas</h1>
       {resumen.length > 0 && (
         <p className="meta">
           <span className="font-medium text-fg">Últimos 30 días:</span>{' '}
@@ -139,7 +139,7 @@ export default async function DescartesPage({ searchParams }: { searchParams: Pr
             })}
           </ul>
           {lista.filas.length < lista.total && (
-            <Link href={`/descartes?${mas.toString()}`} className="btn w-full">
+            <Link href={`/descartadas?${mas.toString()}`} className="btn w-full">
               Cargar más ({lista.filas.length} de {lista.total})
             </Link>
           )}

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Archive, ChevronRight, LogOut, SlidersHorizontal } from 'lucide-react';
+import { ChevronRight, LogOut, SlidersHorizontal } from 'lucide-react';
 import { cerrarSesion } from '@/app/login/actions';
 import ExcelBoton from '@/components/ExcelBoton';
 import { requireSession } from '@/lib/session';
@@ -16,13 +16,6 @@ export default async function AjustesPage() {
           <Link href="/criterios" className="flex min-h-14 items-center gap-3 px-5 text-[15px] font-medium">
             <SlidersHorizontal size={20} aria-hidden className="text-accent" />
             <span className="flex-1">Criterios de búsqueda</span>
-            <ChevronRight size={18} aria-hidden className="text-muted" />
-          </Link>
-        </li>
-        <li>
-          <Link href="/descartes" className="flex min-h-14 items-center gap-3 px-5 text-[15px] font-medium">
-            <Archive size={20} aria-hidden className="text-accent" />
-            <span className="flex-1">Descartes</span>
             <ChevronRight size={18} aria-hidden className="text-muted" />
           </Link>
         </li>
