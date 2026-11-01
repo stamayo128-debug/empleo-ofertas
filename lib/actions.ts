@@ -173,6 +173,20 @@ export async function guardarPuestos(datos: unknown): Promise<Resultado> {
   return { ok: true };
 }
 
+/** Enciende o apaga las búsquedas de un tema en un sitio (todos los portales a la vez). */
+export async function cambiarBusquedas(sitio: unknown, tema: unknown, activa: unknown): Promise<Resultado> {
+  await requireSession();
+  const d = z.strictObject({ sitio: z.string().trim().min(1).max(80), tema: z.string().trim().min(1).max(60), activa: z.boolean() }).safeParse({ sitio, tema, activa });
+  if (!d.success) return { ok: false, error: 'Datos no válidos' };
+  const res = await db().from('consultas').update({ activa: d.data.activa, updated_at: new Date().toISOString() }).eq('sitio', d.data.sitio).eq('tema', d.data.tema).select('id');
+  if (res.error || !res.data || res.data.length === 0) {
+    console.error('[cambiarBusquedas]', res.error?.code ?? 'sin filas');
+    return { ok: false, error: 'No se pudo guardar' };
+  }
+  revalidatePath('/ajustes', 'layout');
+  return { ok: true };
+}
+
 /** El perfil, por apartados. Se junta en un solo texto y solo se toca ese campo de los criterios. */
 export async function guardarPerfil(datos: unknown): Promise<Resultado> {
   await requireSession();
