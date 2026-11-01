@@ -2,7 +2,7 @@ import 'server-only';
 import { cache } from 'react';
 import { db, fetchAll, ok } from './db';
 import type { Filtros } from './filtros';
-import type { Busqueda, Criterios, CuadreBusqueda, Descarte, DescartadaPorTi, Ejecucion, Evento, NotaAgente, Oferta, OfertaLista } from './types';
+import type { Busqueda, Criterios, CuadreBusqueda, Descarte, DescartadaPorTi, Ejecucion, Evento, NotaAgente, Oferta, OfertaLista, Ubicacion } from './types';
 import { hoyMadrid, inicioDiaMadrid, restarDias } from './format';
 import { categoriaDe, type Descartada, type FiltroDescartadas } from './descartadas';
 import { grupoPortal } from './portales';
@@ -144,6 +144,12 @@ export async function busquedasDe(ids: number[]): Promise<Busqueda[]> {
 export async function cuadreDe(ids: number[]): Promise<CuadreBusqueda[]> {
   if (!ids.length) return [];
   return fetchAll<CuadreBusqueda>('v_cuadre_busquedas_v2', 'id,ejecucion_id,resultados_scraper,cola_pendiente', 'id', (q) => q.in('ejecucion_id', ids));
+}
+
+// ---------- Sitios donde busco ----------
+export async function listarUbicaciones(): Promise<Ubicacion[]> {
+  const res = await db().from('ubicaciones').select('id,nombre,radio_km,activa,orden').order('orden').order('id');
+  return ok<Ubicacion[]>(res as never) ?? [];
 }
 
 // ---------- Criterios y notas del agente ----------
