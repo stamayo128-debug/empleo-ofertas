@@ -46,7 +46,7 @@ export default function OfertaCard({ o, href, seleccionada = false }: { o: Ofert
 
       {(etiquetas.length > 0 || o.afinidad != null) && (
         <div className="mt-3 flex flex-wrap gap-2">
-          <AfinidadChip afinidad={o.afinidad} etiqueta={o.afinidad_etiqueta} />
+          <AfinidadChip afinidad={o.afinidad} />
           {etiquetas.map((e) => <span key={e} className="chip min-h-8 bg-surface-2 shadow-none">{e}</span>)}
         </div>
       )}

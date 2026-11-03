@@ -164,13 +164,13 @@ export default function DetallePanel({ o, cerrarHref }: { o: Oferta; cerrarHref:
         <Bloque titulo="Qué ofrecen">{ofrece.length > 0 && <Lista items={ofrece} />}</Bloque>
 
         <Bloque titulo="Encaje contigo">
-          {o.afinidad != null && o.afinidad_etiqueta && (
+          {o.afinidad != null && (
             <div className="space-y-2">
               <div className="flex flex-wrap items-center gap-2">
-                <AfinidadChip afinidad={o.afinidad} etiqueta={o.afinidad_etiqueta} />
+                <AfinidadChip afinidad={o.afinidad} />
                 {o.encaje && <span className="chip min-h-8 bg-surface-2 shadow-none">Encaje {o.encaje}</span>}
               </div>
-              <AfinidadBarra afinidad={o.afinidad} etiqueta={o.afinidad_etiqueta} />
+              <AfinidadBarra afinidad={o.afinidad} />
               <p className="meta">Es la valoración del agente de cuánto se parece este trabajo a lo que buscas y sabes hacer.</p>
             </div>
           )}

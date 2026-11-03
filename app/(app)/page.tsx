@@ -29,7 +29,7 @@ export default async function OfertasPage({ searchParams }: { searchParams: Prom
           </p>
         </header>
 
-        <FiltrosOfertas filtros={{ plat: f.plat, dia: f.dia, af: f.af, orden: f.orden }} />
+        <FiltrosOfertas filtros={{ plat: f.plat, dia: f.dia, afmin: f.afmin, orden: f.orden }} />
 
         {lista.filas.length === 0 ? (
           <EmptyState acciones={filtrado ? <Link href="/" className="btn">Quitar filtros</Link> : undefined}>
