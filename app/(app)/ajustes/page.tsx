@@ -14,7 +14,7 @@ export default async function AjustesPage() {
   const [sitios, criterios, catalogo] = await Promise.all([
     listarUbicaciones().catch(() => []),
     obtenerCriterios().catch(() => null),
-    listarCatalogoBusquedas().catch(() => ({ temas: [], filas: [] })),
+    listarCatalogoBusquedas().catch(() => ({ temas: [], filas: [], archivadas: [] })),
   ]);
 
   const activos = sitios.filter((s) => s.activa);

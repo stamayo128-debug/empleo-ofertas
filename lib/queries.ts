@@ -2,7 +2,7 @@ import 'server-only';
 import { cache } from 'react';
 import { db, fetchAll, ok } from './db';
 import type { Filtros } from './filtros';
-import type { Busqueda, BusquedaCatalogo, Criterios, CuadreBusqueda, Descarte, DescartadaPorTi, Ejecucion, Evento, NotaAgente, Oferta, OfertaLista, TemaBusqueda, Ubicacion } from './types';
+import type { Busqueda, BusquedaArchivada, BusquedaCatalogo, Criterios, CuadreBusqueda, Descarte, DescartadaPorTi, Ejecucion, Evento, NotaAgente, Oferta, OfertaLista, TemaBusqueda, Ubicacion } from './types';
 import { hoyMadrid, inicioDiaMadrid, restarDias } from './format';
 import { categoriaDe, type Descartada, type FiltroDescartadas } from './descartadas';
 import { grupoPortal } from './portales';
@@ -153,12 +153,19 @@ export async function listarUbicaciones(): Promise<Ubicacion[]> {
 }
 
 // ---------- Catálogo de búsquedas ----------
-export async function listarCatalogoBusquedas(): Promise<{ temas: TemaBusqueda[]; filas: BusquedaCatalogo[] }> {
-  const [temas, filas] = await Promise.all([
+export async function listarCatalogoBusquedas(): Promise<{ temas: TemaBusqueda[]; filas: BusquedaCatalogo[]; archivadas: BusquedaArchivada[] }> {
+  const [temas, filas, rend, antiguas] = await Promise.all([
     db().from('temas_busqueda').select('clave,nombre,descripcion,orden').order('orden'),
-    db().from('consultas').select('id,plataforma,descripcion,activa,dias_semana,sitio,tema').not('tema', 'is', null).not('sitio', 'is', null).order('id'),
+    db().from('consultas').select('id,plataforma,actor,descripcion,activa,dias_semana,sitio,tema').not('tema', 'is', null).not('sitio', 'is', null).order('id'),
+    db().from('v_rendimiento_consultas').select('id,ejecuciones_30d,resultados,aceptadas'),
+    db().from('consultas').select('id,plataforma,descripcion').eq('activa', false).is('tema', null).order('id'),
   ]);
-  return { temas: ok<TemaBusqueda[]>(temas as never) ?? [], filas: ok<BusquedaCatalogo[]>(filas as never) ?? [] };
+  const porId = new Map((ok<{ id: number; ejecuciones_30d: number; resultados: number; aceptadas: number }[]>(rend as never) ?? []).map((r) => [r.id, r]));
+  const lista = (ok<Omit<BusquedaCatalogo, 'ejecuciones_30d' | 'resultados_30d' | 'aceptadas_30d'>[]>(filas as never) ?? []).map((f) => {
+    const r = porId.get(f.id);
+    return { ...f, ejecuciones_30d: r ? Number(r.ejecuciones_30d) : null, resultados_30d: r ? Number(r.resultados) : null, aceptadas_30d: r ? Number(r.aceptadas) : null };
+  });
+  return { temas: ok<TemaBusqueda[]>(temas as never) ?? [], filas: lista, archivadas: ok<BusquedaArchivada[]>(antiguas as never) ?? [] };
 }
 
 // ---------- Criterios y notas del agente ----------

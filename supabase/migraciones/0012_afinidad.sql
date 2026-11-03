@@ -1,0 +1,8 @@
+-- Copia de documentación de la migración 0012 (ya aplicada en Supabase).
+-- Afinidad con el perfil (0-100): la decide el agente al ingerir la ficha y se guarda en ofertas.afinidad.
+--  · ofertas.afinidad smallint (0-100), nullable.
+--  · afinidad_ajustada(encaje, valor): Alto no baja de 60 y Medio no pasa de 74.
+--  · afinidad_de_json(json): lee "afinidad" de la ficha si es un entero 0-100.
+--  · asignar_afinidad(id, valor): puntúa una oferta que aún no tenía afinidad (para las ofertas antiguas).
+--  · ingestar_lote_v2 y rellenar_ficha guardan la afinidad de la ficha (solo si la oferta no tenía).
+--  · v_ofertas_web: dos columnas nuevas al final: afinidad y afinidad_etiqueta (Muy afín ≥ 75, Afín 50-74, Poco afín < 50), con security_invoker.
