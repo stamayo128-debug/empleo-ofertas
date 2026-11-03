@@ -160,7 +160,15 @@ export type BusquedaCatalogo = {
   dias_semana: number[];
   sitio: string;
   tema: string;
+  actor: string;
+  /** Últimos 30 días (de v_rendimiento_consultas); null si aún no se ha ejecutado. */
+  ejecuciones_30d: number | null;
+  resultados_30d: number | null;
+  aceptadas_30d: number | null;
 };
+
+/** Búsqueda archivada que ya no pertenece a ningún tema (solo lectura). */
+export type BusquedaArchivada = { id: number; plataforma: string; descripcion: string };
 
 export type TemaBusqueda = { clave: string; nombre: string; descripcion: string | null; orden: number };
 

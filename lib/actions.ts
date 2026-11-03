@@ -180,8 +180,11 @@ export async function guardarPuestos(datos: unknown): Promise<Resultado> {
   return { ok: true };
 }
 
+/** Resultado con un aviso opcional para mostrar al usuario (por ejemplo, qué portales no se pudieron copiar). */
+type ResultadoAviso = { ok: true; aviso?: string } | { ok: false; error: string };
+
 /** Enciende o apaga las búsquedas de un tema en un sitio (todos los portales a la vez). Si el sitio aún no las tiene, las crea. */
-export async function cambiarBusquedas(sitio: unknown, tema: unknown, activa: unknown): Promise<Resultado> {
+export async function cambiarBusquedas(sitio: unknown, tema: unknown, activa: unknown): Promise<ResultadoAviso> {
   await requireSession();
   const d = z.strictObject({ sitio: z.string().trim().min(1).max(80), tema: z.string().trim().min(1).max(60), activa: z.boolean() }).safeParse({ sitio, tema, activa });
   if (!d.success) return { ok: false, error: 'Datos no válidos' };
@@ -195,15 +198,31 @@ export async function cambiarBusquedas(sitio: unknown, tema: unknown, activa: un
     ]);
     const u = lugar.data as { nombre: string; radio_km: number; activa: boolean } | null;
     if (!u || !u.activa) return { ok: false, error: 'Ese sitio no está activo' };
-    const creadas = await crearBusquedasDeTema(u, d.data.tema, (info.data as { nombre?: string } | null)?.nombre ?? d.data.tema);
-    if (creadas === 0) return { ok: false, error: 'No hay una búsqueda de este tema que se pueda copiar a este sitio' };
+    const { creadas, omitidas } = await crearBusquedasDeTema(u, d.data.tema, (info.data as { nombre?: string } | null)?.nombre ?? d.data.tema);
+    if (creadas === 0) return { ok: false, error: 'No hay una búsqueda activa de este tema que se pueda copiar a este sitio' };
     revalidatePath('/ajustes', 'layout');
-    return { ok: true };
+    const aviso = omitidas.length > 0 ? `Se crearon ${creadas}. No se pudo copiar a ${omitidas.join(', ')}.` : `Se crearon ${creadas} búsquedas`;
+    return { ok: true, aviso };
   }
 
   const res = await db().from('consultas').update({ activa: d.data.activa, updated_at: new Date().toISOString() }).eq('sitio', d.data.sitio).eq('tema', d.data.tema).select('id');
   if (res.error || !res.data || res.data.length === 0) {
     console.error('[cambiarBusquedas]', res.error?.code ?? 'sin filas');
+    return { ok: false, error: 'No se pudo guardar' };
+  }
+  revalidatePath('/ajustes', 'layout');
+  return { ok: true };
+}
+
+/** Enciende o apaga una sola búsqueda. */
+export async function cambiarBusqueda(idEntrada: unknown, activa: unknown): Promise<Resultado> {
+  await requireSession();
+  const id = idSchema.safeParse(idEntrada);
+  const a = z.boolean().safeParse(activa);
+  if (!id.success || !a.success) return { ok: false, error: 'Datos no válidos' };
+  const res = await db().from('consultas').update({ activa: a.data, updated_at: new Date().toISOString() }).eq('id', id.data).select('id');
+  if (res.error || !res.data || res.data.length === 0) {
+    console.error('[cambiarBusqueda]', res.error?.code ?? 'sin filas');
     return { ok: false, error: 'No se pudo guardar' };
   }
   revalidatePath('/ajustes', 'layout');
