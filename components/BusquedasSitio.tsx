@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { Plus, TriangleAlert } from 'lucide-react';
+import { ChevronDown, Plus, TriangleAlert } from 'lucide-react';
 import { cambiarBusqueda, cambiarBusquedas, cambiarBusquedasPortal } from '@/lib/actions';
 import { resumenDias } from '@/lib/busquedas';
 import type { BusquedaCatalogo, TemaBusqueda } from '@/lib/types';
@@ -21,6 +21,7 @@ export default function BusquedasSitio({
 }: { sitio: string; portales: PortalDelSitio[]; disponibles: TemaBusqueda[]; nombresTema: Record<string, string> }) {
   const toast = useToast();
   const [pendiente, iniciar] = useTransition();
+  const [abiertos, setAbiertos] = useState<Record<string, boolean>>({});
   const [activas, setActivas] = useState<Record<number, boolean>>(() => Object.fromEntries(portales.flatMap((p) => p.filas.map((f) => [f.id, f.activa]))));
 
   const fijar = (ids: number[], valor: boolean) => setActivas((a) => ({ ...a, ...Object.fromEntries(ids.map((i) => [i, valor])) }));
@@ -52,19 +53,25 @@ export default function BusquedasSitio({
             return (
               <li key={plataforma} className={`tile space-y-2 ${on ? '' : 'opacity-70'}`}>
                 <div className="flex items-center gap-3">
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-[15px] font-semibold">{plataforma}</h3>
-                    <p className="text-sm text-muted">
-                      {nActivas === filas.length ? (filas.length === 1 ? '1 búsqueda activa' : `${filas.length} búsquedas activas`) : on ? `${nActivas} de ${filas.length} activas` : 'Archivada'}
-                    </p>
-                  </div>
+                  <button
+                    type="button" className="flex min-h-11 min-w-0 flex-1 items-center gap-2 text-left" aria-expanded={!!abiertos[plataforma]}
+                    onClick={() => setAbiertos((a) => ({ ...a, [plataforma]: !a[plataforma] }))}
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[15px] font-semibold">{plataforma}</span>
+                      <span className="block text-sm text-muted">
+                        {nActivas === filas.length ? (filas.length === 1 ? '1 búsqueda activa' : `${filas.length} búsquedas activas`) : on ? `${nActivas} de ${filas.length} activas` : 'Archivada'}
+                      </span>
+                    </span>
+                    <ChevronDown size={20} aria-hidden className={`shrink-0 text-muted transition-transform ${abiertos[plataforma] ? 'rotate-180' : ''}`} />
+                  </button>
                   <input
                     type="checkbox" role="switch" className="size-6 shrink-0 accent-[var(--accent)]" checked={on}
                     aria-label={`Todas las búsquedas de ${plataforma} en ${sitio}`}
                     onChange={(e) => guardar(ids, e.target.checked, () => cambiarBusquedasPortal(sitio, plataforma, e.target.checked), e.target.checked ? 'Búsquedas activadas' : 'Búsquedas archivadas')}
                   />
                 </div>
-                <ul className="divide-y divide-border">
+                {abiertos[plataforma] && <ul className="divide-y divide-border">
                   {filas.map((f) => {
                     const act = !!activas[f.id];
                     return (
@@ -89,7 +96,7 @@ export default function BusquedasSitio({
                       </li>
                     );
                   })}
-                </ul>
+                </ul>}
               </li>
             );
           })}
