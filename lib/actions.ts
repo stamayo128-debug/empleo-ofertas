@@ -214,6 +214,21 @@ export async function cambiarBusquedas(sitio: unknown, tema: unknown, activa: un
   return { ok: true };
 }
 
+/** Enciende o apaga todas las búsquedas de un portal en un sitio. */
+export async function cambiarBusquedasPortal(sitio: unknown, plataforma: unknown, activa: unknown): Promise<Resultado> {
+  await requireSession();
+  const d = z.strictObject({ sitio: z.string().trim().min(1).max(80), plataforma: z.string().trim().min(1).max(60), activa: z.boolean() }).safeParse({ sitio, plataforma, activa });
+  if (!d.success) return { ok: false, error: 'Datos no válidos' };
+  const res = await db().from('consultas').update({ activa: d.data.activa, updated_at: new Date().toISOString() })
+    .eq('sitio', d.data.sitio).eq('plataforma', d.data.plataforma).not('tema', 'is', null).select('id');
+  if (res.error || !res.data || res.data.length === 0) {
+    console.error('[cambiarBusquedasPortal]', res.error?.code ?? 'sin filas');
+    return { ok: false, error: 'No se pudo guardar' };
+  }
+  revalidatePath('/ajustes', 'layout');
+  return { ok: true };
+}
+
 /** Enciende o apaga una sola búsqueda. */
 export async function cambiarBusqueda(idEntrada: unknown, activa: unknown): Promise<Resultado> {
   await requireSession();
