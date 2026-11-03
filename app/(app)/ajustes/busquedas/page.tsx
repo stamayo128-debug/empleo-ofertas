@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ChevronDown } from 'lucide-react';
 import BusquedasSitio, { type PortalDelSitio } from '@/components/BusquedasSitio';
 import EmptyState from '@/components/EmptyState';
 import { nombreSitio } from '@/lib/busquedas';
@@ -13,6 +13,14 @@ const unir = (l: string[]) => (l.length <= 1 ? l.join('') : `${l.slice(0, -1).jo
 
 /** Orden de las tarjetas de portal dentro de un sitio; los que no estén aquí van al final. */
 const ORDEN_PORTALES = ['LinkedIn', 'Indeed', 'InfoJobs', 'Tecnoempleo', 'Welcome to the Jungle', 'Google Jobs', 'Remoto', 'Otra'];
+
+/** «3 portales activos · 7 búsquedas» para la cabecera de cada sitio. */
+function resumenSitio(portales: PortalDelSitio[]) {
+  const act = portales.filter((p) => p.filas.some((f) => f.activa));
+  const n = act.reduce((t, p) => t + p.filas.filter((f) => f.activa).length, 0);
+  if (act.length === 0) return 'Sin búsquedas activas';
+  return `${act.length === 1 ? '1 portal' : `${act.length} portales`} · ${n === 1 ? '1 búsqueda' : `${n} búsquedas`}`;
+}
 
 export default async function BusquedasPage() {
   await requireSession();
@@ -50,7 +58,7 @@ export default async function BusquedasPage() {
       <header>
         <h1 className="text-2xl font-semibold">Mis búsquedas</h1>
         <p className="meta">
-          Las búsquedas que el agente lanza cada día{portalesActivos.length > 0 && ` en ${unir(portalesActivos)}`}. Cada sitio tiene una tarjeta por portal con sus búsquedas: apaga un portal entero o una búsqueda concreta, y mira lo que ha dado en los últimos 30 días. Si un sitio no tiene todavía un tema, puedes añadirlo al final de su sección.
+          Las búsquedas que el agente lanza cada día{portalesActivos.length > 0 && ` en ${unir(portalesActivos)}`}. Abre un sitio para ver sus portales y un portal para ver sus búsquedas: apaga un portal entero o una búsqueda concreta, y mira lo que ha dado en los últimos 30 días.
         </p>
       </header>
 
@@ -58,18 +66,26 @@ export default async function BusquedasPage() {
         <EmptyState>Todavía no hay búsquedas en el catálogo.</EmptyState>
       ) : (
         secciones.map(({ sitio, portales, disponibles }) => (
-          <section key={sitio} className="card space-y-4 p-5" aria-labelledby={`b-${sitio}`}>
-            <h2 id={`b-${sitio}`} className="text-[17px] font-semibold">{nombreSitio(sitio)}</h2>
-            {portales.length > 0 || disponibles.length > 0 ? (
-              // La clave cambia cuando cambian las búsquedas, para que los interruptores se pongan al día.
-              <BusquedasSitio
-                key={`${sitio}-${portales.flatMap((p) => p.filas.map((f) => `${f.id}${f.activa ? 1 : 0}`)).join('.')}-${disponibles.length}`}
-                sitio={sitio} portales={portales} disponibles={disponibles} nombresTema={nombresTema}
-              />
-            ) : (
-              <p className="meta">Aún no hay búsquedas para este sitio.</p>
-            )}
-          </section>
+          <details key={sitio} className="card group">
+            <summary className="flex min-h-16 cursor-pointer list-none items-center gap-3 px-5 py-3 [&::-webkit-details-marker]:hidden">
+              <span className="min-w-0 flex-1">
+                <span className="block text-[17px] font-semibold">{nombreSitio(sitio)}</span>
+                <span className="block text-sm text-muted">{resumenSitio(portales)}</span>
+              </span>
+              <ChevronDown size={20} aria-hidden className="shrink-0 text-muted transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="px-4 pb-4">
+              {portales.length > 0 || disponibles.length > 0 ? (
+                // La clave cambia cuando cambian las búsquedas, para que los interruptores se pongan al día.
+                <BusquedasSitio
+                  key={`${sitio}-${portales.flatMap((p) => p.filas.map((f) => `${f.id}${f.activa ? 1 : 0}`)).join('.')}-${disponibles.length}`}
+                  sitio={sitio} portales={portales} disponibles={disponibles} nombresTema={nombresTema}
+                />
+              ) : (
+                <p className="meta">Aún no hay búsquedas para este sitio.</p>
+              )}
+            </div>
+          </details>
         ))
       )}
 
