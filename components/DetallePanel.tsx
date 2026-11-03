@@ -3,6 +3,7 @@ import { ArrowUpRight, Briefcase, CalendarDays, MapPin } from 'lucide-react';
 import { MODALIDAD_ETIQUETA, MOTIVO_USUARIO_ETIQUETA } from '@/lib/constantes';
 import { fmtCorta, haceDias, herramientasYAptitudes, lista, txt, urlSegura } from '@/lib/format';
 import { nombrePortal } from '@/lib/portales';
+import AfinidadChip, { AfinidadBarra } from './AfinidadChip';
 import type { Fuente, Oferta } from '@/lib/types';
 import Avatar from './Avatar';
 import BotonGuardar from './BotonGuardar';
@@ -163,6 +164,16 @@ export default function DetallePanel({ o, cerrarHref }: { o: Oferta; cerrarHref:
         <Bloque titulo="Qué ofrecen">{ofrece.length > 0 && <Lista items={ofrece} />}</Bloque>
 
         <Bloque titulo="Encaje contigo">
+          {o.afinidad != null && o.afinidad_etiqueta && (
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <AfinidadChip afinidad={o.afinidad} etiqueta={o.afinidad_etiqueta} />
+                {o.encaje && <span className="chip min-h-8 bg-surface-2 shadow-none">Encaje {o.encaje}</span>}
+              </div>
+              <AfinidadBarra afinidad={o.afinidad} etiqueta={o.afinidad_etiqueta} />
+              <p className="meta">Es la valoración del agente de cuánto se parece este trabajo a lo que buscas y sabes hacer.</p>
+            </div>
+          )}
           {encaje && <LeerMas texto={encaje} />}
           {huecos.length > 0 && <div><h4 className="mb-1.5 text-[15px] font-semibold">Qué te falta</h4><Lista items={huecos} /></div>}
         </Bloque>

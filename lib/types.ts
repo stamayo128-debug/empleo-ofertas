@@ -99,6 +99,9 @@ export type Oferta = {
   descartada_en: string | null;
   /** Cuándo se guardó con el marcador; null si no está guardada. */
   guardada_en: string | null;
+  /** Afinidad con tu perfil (0-100), decidida por el agente; null si aún no se ha puntuado. */
+  afinidad: number | null;
+  afinidad_etiqueta: 'Muy afín' | 'Afín' | 'Poco afín' | null;
 };
 
 /** Subconjunto de columnas que carga la lista de ofertas (la tarjeta y sus botones). */
@@ -108,7 +111,7 @@ export type OfertaLista = Pick<
   | 'url' | 'url_principal' | 'fuentes' | 'fecha_publicacion' | 'fecha_publicacion_estimada' | 'salario' | 'tiene_salario'
   | 'descripcion_clara' | 'calidad_datos' | 'encaje' | 'estado' | 'sin_revisar' | 'por_verificar' | 'origen'
   | 'respuesta_tipo' | 'proximo_seguimiento' | 'fecha_envio' | 'descarte_usuario_motivo' | 'guardada_en'
-  | 'tramo_experiencia' | 'fecha_deteccion'
+  | 'tramo_experiencia' | 'fecha_deteccion' | 'afinidad' | 'afinidad_etiqueta'
 >;
 
 /** Fila de "Descartadas por ti" (subconjunto de v_ofertas_web). */

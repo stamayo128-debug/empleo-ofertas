@@ -3,6 +3,7 @@ import { ArrowUpRight, Check, ChevronRight } from 'lucide-react';
 import { MODALIDAD_ETIQUETA } from '@/lib/constantes';
 import { haceDias, txt, urlSegura } from '@/lib/format';
 import { grupoPortal, nombrePortal } from '@/lib/portales';
+import AfinidadChip from './AfinidadChip';
 import type { OfertaLista } from '@/lib/types';
 import Avatar from './Avatar';
 import BotonGuardar from './BotonGuardar';
@@ -43,8 +44,9 @@ export default function OfertaCard({ o, href, seleccionada = false }: { o: Ofert
       </h2>
       {salario && <p className="mt-1 text-[15px] font-medium">{salario.length > 32 ? `${salario.slice(0, 31)}…` : salario}</p>}
 
-      {etiquetas.length > 0 && (
+      {(etiquetas.length > 0 || o.afinidad != null) && (
         <div className="mt-3 flex flex-wrap gap-2">
+          <AfinidadChip afinidad={o.afinidad} etiqueta={o.afinidad_etiqueta} />
           {etiquetas.map((e) => <span key={e} className="chip min-h-8 bg-surface-2 shadow-none">{e}</span>)}
         </div>
       )}
