@@ -1,7 +1,7 @@
 import 'server-only';
 import { cache } from 'react';
 import { db, fetchAll, ok } from './db';
-import { AFINIDADES, type Filtros } from './filtros';
+import type { Filtros } from './filtros';
 import type { Busqueda, BusquedaArchivada, BusquedaCatalogo, Criterios, CuadreBusqueda, Descarte, DescartadaPorTi, Ejecucion, Evento, NotaAgente, Oferta, OfertaLista, TemaBusqueda, Ubicacion } from './types';
 import { hoyMadrid, inicioDiaMadrid, restarDias } from './format';
 import { categoriaDe, type Descartada, type FiltroDescartadas } from './descartadas';
@@ -15,7 +15,7 @@ const COLUMNAS_LISTA = [
   'url', 'url_principal', 'fuentes', 'fecha_publicacion', 'fecha_publicacion_estimada', 'salario', 'tiene_salario',
   'descripcion_clara', 'calidad_datos', 'encaje', 'estado', 'sin_revisar', 'por_verificar', 'origen',
   'respuesta_tipo', 'proximo_seguimiento', 'fecha_envio', 'descarte_usuario_motivo', 'guardada_en',
-  'tramo_experiencia', 'fecha_deteccion', 'afinidad', 'afinidad_etiqueta',
+  'tramo_experiencia', 'fecha_deteccion', 'afinidad',
 ].join(',');
 
 /** Ids de las ofertas que están en alguno de los portales elegidos (en cualquiera de sus fuentes, no solo la principal). */
@@ -42,7 +42,7 @@ export async function listarOfertas(f: Filtros): Promise<{ filas: OfertaLista[];
     const hoy = hoyMadrid();
     q = q.gte('fecha_deteccion', f.dia === 'hoy' ? hoy : restarDias(hoy, Number(f.dia) - 1));
   }
-  if (f.af.length) q = q.in('afinidad_etiqueta', f.af.map((v) => AFINIDADES.find((a) => a.valor === v)?.etiqueta ?? ''));
+  if (f.afmin) q = q.gte('afinidad', f.afmin);
   if (f.orden === 'afinidad') q = q.order('afinidad', { ascending: false, nullsFirst: false });
   q = q.order('fecha_deteccion', { ascending: false }).order('id', { ascending: false }).range(0, f.lim - 1);
   const res = (await q) as unknown as { data: OfertaLista[] | null; count: number | null; error: { message: string } | null };
